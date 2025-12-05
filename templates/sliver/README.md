@@ -1,71 +1,54 @@
-# Packer Build for Sliver Images (Docker & AMI)
+# Sliver C2 Warp Gate Template
 
-This repository contains Packer templates to build **Sliver C2**
-**Docker images** (for both `amd64` and `arm64`) and AWS **AMIs** (Ubuntu-based
-EC2 images). The build provisions all required packages, sets up tools, and
-runs Ansible roles/playbooks to configure the system for robust TTP simulation
-and testing workflows.
+This template builds **Sliver C2** images using Warp Gate. It supports building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs** (Ubuntu-based EC2 images). The build provisions all required packages, sets up tools, and runs Ansible roles to configure the system for robust TTP simulation and testing workflows.
 
 ---
 
 ## Requirements
 
-- [Packer](https://www.packer.io/)
+- [Warp Gate](https://github.com/l50/warpgate) installed and configured
 - Docker (for building Docker images)
-- AWS credentials with permissions to create AMIs
-- Provisioning repositories (e.g., `ansible-collection-arsenal`, `workstation` roles)
-- Required Packer plugins:
-
+- AWS credentials with permissions to create AMIs (for AMI builds)
+- Arsenal provisioning repository with the `ARSENAL_REPO_PATH` environment variable set
+- Required Packer plugins (installed automatically via `warpgate init`):
   - `amazon`
   - `docker`
   - `ansible`
 
 ---
 
-## Variables
+## Configuration
 
-Configurable via `variables.pkr.hcl` or CLI `VARS=` overrides. Key variables:
+The template configuration is managed in `warpgate.yaml`. Key settings include:
 
-- `blueprint_name`: Image name prefix (e.g., `sliver`)
-- `provision_repo_path`: Path to arsenal provisioning repo
-- `workstation_repo_path`: Path to workstation repo
-- `ami_region`: AWS region for AMI build (default: `us-east-1`)
-- `os_version`: Ubuntu version (default: `jammy-22.04`)
+- `name`: Template name (`sliver`)
+- `base.image`: Base Docker image (Ubuntu 25.04)
+- `provisioners`: Shell and Ansible provisioners for setup
+- `targets`: Defines build targets (container images and AMIs)
+
+Environment variables required:
+- `ARSENAL_REPO_PATH`: Path to your ansible-collection-arsenal repository
 
 ---
 
 ## Building Docker Images
 
-This builds **Sliver** Docker images for `amd64` and `arm64`, installs
-prerequisites, and provisions using Ansible roles.
+This builds **Sliver** Docker images for `amd64` and `arm64` architectures, installs prerequisites, and provisions using Ansible roles.
 
-**Commands:**
-
-Initialize the template:
+**Initialize the template:**
 
 ```bash
-export TASK_X_REMOTE_TASKFILES=1
-task -y template-init \
-  TEMPLATE_NAME=sliver \
-  ONLY='sliver-docker.docker.*' \
-  VARS="provision_repo_path=${HOME}/ansible-collection-arsenal \
-  workstation_repo_path=${HOME}/ansible-workstation \
-  template_name=sliver" UPGRADE=true
+warpgate init sliver
 ```
 
-Run the build:
+**Build Docker images:**
 
 ```bash
-export TASK_X_REMOTE_TASKFILES=1
-task -y template-build \
-  TEMPLATE_NAME=sliver \
-  ONLY='sliver-docker.docker.*' \
-  VARS="provision_repo_path=${HOME}/ansible-collection-arsenal \
-  workstation_repo_path=${HOME}/ansible-workstation \
-  template_name=sliver"
+export ARSENAL_REPO_PATH="${HOME}/ansible-collection-arsenal"
+warpgate build sliver --only 'docker.*'
 ```
 
-After the build, multi-arch Sliver Docker images will be available locally.
+After the build, multi-arch Sliver Docker images will be available locally as `sliver:latest`.
 
 ---
 
@@ -74,16 +57,11 @@ After the build, multi-arch Sliver Docker images will be available locally.
 To build an AWS AMI (Ubuntu-based, via `amazon-ebs`):
 
 ```bash
-export TASK_X_REMOTE_TASKFILES=1
-task -y template-build \
-  TEMPLATE_NAME=sliver \
-  ONLY='sliver-ami.amazon-ebs.*' \
-  VARS="provision_repo_path=${HOME}/ansible-collection-arsenal \
-  template_name=sliver"
+export ARSENAL_REPO_PATH="${HOME}/ansible-collection-arsenal"
+warpgate build sliver --only 'amazon-ebs.*'
 ```
 
-> 🛡️ Ensure your AWS credentials are configured and your IAM instance profile
-> allows SSM usage and AMI creation.
+> 🛡️ Ensure your AWS credentials are configured and your IAM permissions allow SSM usage and AMI creation.
 
 ---
 
@@ -92,27 +70,54 @@ task -y template-build \
 After building the Docker image, you can push it to GHCR:
 
 ```bash
-export TASK_X_REMOTE_TASKFILES=1
-task -y template-push \
-  NAMESPACE=l50 \
-  IMAGE_NAME=sliver \
-  GITHUB_TOKEN=$(gh auth token) \
-  GITHUB_USER=l50
+# Tag the image
+docker tag sliver:latest ghcr.io/YOUR_NAMESPACE/sliver:latest
+
+# Authenticate with GHCR
+echo $GITHUB_TOKEN | docker login ghcr.io -u YOUR_USERNAME --password-stdin
+
+# Push the image
+docker push ghcr.io/YOUR_NAMESPACE/sliver:latest
+```
+
+---
+
+## Validating the Template
+
+To validate the template configuration before building:
+
+```bash
+warpgate validate sliver
 ```
 
 ---
 
 ## Notes
 
-- The build uses both **shell and Ansible provisioners**. Ensure your
-  provisioning playbooks and requirement files are available at the path
-  specified by `provision_repo_path`.
+- The build uses both **shell and Ansible provisioners**. Ensure your Arsenal provisioning playbooks and requirement files are available at the path specified by `ARSENAL_REPO_PATH`.
 - **AMI build:**
   - Creates and tags an AMI in your AWS account.
   - Designed to use SSM (Session Manager) for connections where possible.
+  - Default region: `us-east-1`
+  - Default instance type: `t3.micro`
+  - Default volume size: 50GB
 - **Docker build:**
   - Multi-arch (`amd64` + `arm64`) and privileged for full testbed support.
-  - Images are suitable for CI, local testing, or even deployment in a
-    kubernetes cluster.
-- Customizations such as default user, disk size, and instance type can be
-  controlled via `variables.pkr.hcl` or VARS CLI argument.
+  - Images are suitable for CI, local testing, or deployment in a Kubernetes cluster.
+  - Default user: `sliver`
+  - Working directory: `/home/sliver`
+- The Sliver binaries are installed in `/opt/sliver` and added to the PATH.
+- The build includes cleanup steps to remove temporary files and Ansible artifacts.
+
+---
+
+## Customization
+
+To customize the build, edit the `warpgate.yaml` file:
+
+- Modify `base.image` to use a different base image
+- Add or remove provisioning steps in the `provisioners` section
+- Adjust `targets` to change build platforms or AMI settings
+- Update environment variables in provisioners to change Ansible behavior
+
+For more information on Warp Gate template configuration, see the [Warp Gate documentation](https://github.com/l50/warpgate).
