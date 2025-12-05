@@ -9,7 +9,7 @@ This repository contains pre-built Warpgate templates for deploying security too
 ## Available Templates
 
 | Template | Description | Base Image | Platforms |
-|----------|-------------|------------|-----------|
+| -------- | ----------- | ---------- | --------- |
 | [attack-box](./templates/attack-box) | Full-featured penetration testing toolkit | Kali Linux | Container, AMI |
 | [sliver](./templates/sliver) | Sliver C2 server and client | Ubuntu 25.04 | Container, AMI |
 | [atomic-red-team](./templates/atomic-red-team) | Atomic Red Team testing framework | Ubuntu 22.04 | Container, AMI |
@@ -55,7 +55,7 @@ warpgate build --file warpgate.yaml
 
 Each template directory contains:
 
-```
+```text
 template-name/
 ├── warpgate.yaml          # Main template configuration
 ├── README.md              # Template-specific documentation
@@ -156,7 +156,7 @@ Each template specifies minimum required Warpgate version in metadata.
 
 ## Repository Structure
 
-```
+```text
 warpgate-templates/
 ├── templates/              # All template definitions
 │   ├── attack-box/

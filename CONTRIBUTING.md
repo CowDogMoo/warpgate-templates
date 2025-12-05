@@ -19,22 +19,26 @@ This project adheres to a code of conduct that all contributors are expected to 
 ## Getting Started
 
 1. **Fork the repository**
+
    ```bash
    gh repo fork cowdogmoo/warpgate-templates
    ```
 
 2. **Clone your fork**
+
    ```bash
    git clone https://github.com/YOUR-USERNAME/warpgate-templates.git
    cd warpgate-templates
    ```
 
 3. **Install Warpgate** (if not already installed)
+
    ```bash
    # See: https://github.com/cowdogmoo/warpgate#installation
    ```
 
 4. **Create a feature branch**
+
    ```bash
    git checkout -b feature/my-new-template
    ```
@@ -188,7 +192,7 @@ Specify license (should match template metadata).
 
 ### File Organization
 
-```
+```text
 templates/my-template/
 ├── warpgate.yaml          # Required: template configuration
 ├── README.md              # Required: documentation
@@ -263,6 +267,7 @@ git commit -m "feat: add my-template for XYZ tool"
 ```
 
 Commit types:
+
 - `feat`: New template or major feature
 - `fix`: Bug fix or correction
 - `docs`: Documentation changes

@@ -1,69 +1,55 @@
-# Packer Build for Atomic Red Team Images (Docker & AMI)
+# Atomic Red Team Warp Gate Template
 
-This repository contains Packer templates to build Atomic Red Team
-**Docker images** (for both `amd64` and `arm64`) or AWS **AMIs** (Ubuntu-based
-EC2 images). The build will provision required packages, tools, and run Ansible
-roles to configure the system.
+This template builds **Atomic Red Team** images using Warp Gate. It supports building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs** (Ubuntu-based EC2 images). The build provisions all required packages, sets up tools, and runs Ansible roles to configure the system for security testing and validation workflows using the MITRE ATT&CK framework.
 
 ---
 
 ## Requirements
 
-- [Packer](https://www.packer.io/)
-- AWS account & credentials (for AMI builds)
+- [Warp Gate](https://github.com/l50/warpgate) installed and configured
 - Docker (for building Docker images)
-- Provisioning repo with Ansible roles/playbooks (see `provision_repo_path`)
-- Required Packer plugins:
-
+- AWS credentials with permissions to create AMIs (for AMI builds)
+- Arsenal provisioning repository with the `PROVISION_REPO_PATH` environment variable set
+- Required Packer plugins (installed automatically via `warpgate init`):
   - `amazon`
   - `docker`
   - `ansible`
 
 ---
 
-## Variables
+## Configuration
 
-Many parameters are configurable via the command line or environment
-(see `variables.pkr.hcl`).
+The template configuration is managed in `warpgate.yaml`. Key settings include:
 
-The most important are:
+- `name`: Template name (`atomic-red-team`)
+- `base.image`: Base Docker image (Ubuntu 22.04 Jammy)
+- `provisioners`: Shell and Ansible provisioners for setup
+- `targets`: Defines build targets (container images and AMIs)
 
-- `blueprint_name`: Image name prefix, e.g. `atomic-red-team`
-- `provision_repo_path`: Path to provisioning repo (e.g., `${HOME}/ansible-collection-arsenal`)
-- `ami_region`: AWS region for the AMI (default: `us-east-1`)
-- `os_version`: OS version (`ubuntu:jammy` by default)
+Environment variables required:
+
+- `PROVISION_REPO_PATH`: Path to your ansible-collection-arsenal repository
 
 ---
 
 ## Building Docker Images
 
-This builds Atomic Red Team Docker images for `amd64` and `arm64`, installs
-prerequisites, and provisions using Ansible roles.
+This builds **Atomic Red Team** Docker images for `amd64` and `arm64` architectures, installs prerequisites, and provisions using Ansible roles.
 
-**Commands:**
-
-Initialize the template:
+**Initialize the template:**
 
 ```bash
-export TASK_X_REMOTE_TASKFILES=1
-task -y template-init \
-  TEMPLATE_NAME=atomic-red-team \
-  ONLY='attack-box-docker.docker.*' \
-  VARS="provision_repo_path=${HOME}/ansible-collection-arsenal \
-  template_name=atomic-red-team" UPGRADE=true
+warpgate init atomic-red-team
 ```
 
-Run the build:
+**Build Docker images:**
 
 ```bash
-export TASK_X_REMOTE_TASKFILES=1
-task -y template-build \
-  TEMPLATE_NAME=atomic-red-team \
-  ONLY='atomic-red-team-docker.docker.*' \
-  VARS="provision_repo_path=${HOME}/ansible-collection-arsenal template_name=atomic-red-team"
+export PROVISION_REPO_PATH="${HOME}/ansible-collection-arsenal"
+warpgate build atomic-red-team --only 'docker.*'
 ```
 
-After the build, multi-arch Atomic Red Team Docker images will be available locally.
+After the build, multi-arch Atomic Red Team Docker images will be available locally as `atomic-red-team:latest`.
 
 ---
 
@@ -72,42 +58,75 @@ After the build, multi-arch Atomic Red Team Docker images will be available loca
 To build an AWS AMI (Ubuntu-based, via `amazon-ebs`):
 
 ```bash
-export TASK_X_REMOTE_TASKFILES=1
-task -y template-build \
-  TEMPLATE_NAME=atomic-red-team \
-  ONLY='atomic-red-team-ami.amazon-ebs.*' \
-  VARS="provision_repo_path=${HOME}/ansible-collection-arsenal blueprint_name=atomic-red-team"
+export PROVISION_REPO_PATH="${HOME}/ansible-collection-arsenal"
+warpgate build atomic-red-team --only 'amazon-ebs.*'
 ```
 
-> 🛡️ Ensure your AWS credentials are configured and your IAM instance profile
-> allows SSM usage and AMI creation.
+> 🛡️ Ensure your AWS credentials are configured and your IAM permissions allow SSM usage and AMI creation.
 
 ---
 
 ## Pushing Docker Images to GitHub Container Registry
 
+After building the Docker image, you can push it to GHCR:
+
 ```bash
-export TASK_X_REMOTE_TASKFILES=1
-task -y template-push \
-  NAMESPACE=l50 \
-  IMAGE_NAME=atomic-red-team \
-  GITHUB_TOKEN=$(gh auth token) \
-  GITHUB_USER=l50
+# Tag the image
+docker tag atomic-red-team:latest ghcr.io/YOUR_NAMESPACE/atomic-red-team:latest
+
+# Authenticate with GHCR
+echo $GITHUB_TOKEN | docker login ghcr.io -u YOUR_USERNAME --password-stdin
+
+# Push the image
+docker push ghcr.io/YOUR_NAMESPACE/atomic-red-team:latest
+```
+
+---
+
+## Validating the Template
+
+To validate the template configuration before building:
+
+```bash
+warpgate validate atomic-red-team
 ```
 
 ---
 
 ## Notes
 
-- The build uses both **shell and Ansible provisioners**. Ensure your
-  provisioning playbooks and requirement files are available at the path
-  specified by `provision_repo_path`.
+- The build uses both **shell and Ansible provisioners**. Ensure your Arsenal provisioning playbooks and requirement files are available at the path specified by `PROVISION_REPO_PATH`.
 - **AMI build:**
   - Creates and tags an AMI in your AWS account.
   - Designed to use SSM (Session Manager) for connections where possible.
+  - Default region: `us-east-1`
+  - Default instance type: `t3.medium`
+  - Default volume size: 50GB
 - **Docker build:**
   - Multi-arch (`amd64` + `arm64`) and privileged for full testbed support.
-  - Images are suitable for CI, local testing, or even deployment in a
-    kubernetes cluster.
-- Customizations such as default user, disk size, and instance type can be
-  controlled via `variables.pkr.hcl` or VARS CLI argument.
+  - Images are suitable for CI, local testing, or deployment in a Kubernetes cluster.
+  - Default user: `root`
+  - Working directory: `/root/AtomicRedTeam`
+- The Atomic Red Team framework is installed in `/root/AtomicRedTeam` and ready to execute tests.
+- The build includes cleanup steps to remove temporary files and Ansible artifacts.
+
+---
+
+## Customization
+
+To customize the build, edit the `warpgate.yaml` file:
+
+- Modify `base.image` to use a different base image
+- Add or remove provisioning steps in the `provisioners` section
+- Adjust `targets` to change build platforms or AMI settings
+- Update environment variables in provisioners to change Ansible behavior
+
+For more information on Warp Gate template configuration, see the [Warp Gate documentation](https://github.com/l50/warpgate).
+
+---
+
+## About Atomic Red Team
+
+Atomic Red Team is a library of simple, automatable tests that every security team can execute to test their defenses. Tests are mapped to the MITRE ATT&CK framework, making it easy to validate security controls across the entire attack lifecycle.
+
+For more information about Atomic Red Team, visit the [official repository](https://github.com/redcanaryco/atomic-red-team).

@@ -27,6 +27,7 @@ The template configuration is managed in `warpgate.yaml`. Key settings include:
 - `targets`: Defines build targets (container images and AMIs)
 
 Environment variables required:
+
 - `ARSENAL_REPO_PATH`: Path to your ansible-collection-arsenal repository
 
 ---
