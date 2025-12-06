@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cowdogmoo/warpgate/main/schema/warpgate-template.json
+metadata:
+    name: asdf
+    version: 1.0.0
+    description: A minimal container image template with [asdf](https://asdf-vm.com/) version
+    author: Jayson Grace <jayson.e.grace@gmail.com>
+    license: MIT
+    tags: []
+    requires:
+        warpgate: '>=1.0.0'
+name: asdf
+version: latest
+base:
+    image: ubuntu:22.04
+    pull: true
+    changes:
+        - ENV ASDF_DIR=/home/asdf/.asdf
+        - ENV ASDF_DATA_DIR=/home/asdf/.asdf
+        - ENV PATH=/home/asdf/.asdf/shims:/home/asdf/.asdf/bin:$PATH
+        - USER asdf
+        - WORKDIR /workspace
+        - CMD ["/bin/bash"]
+provisioners:
+    - type: shell
+      inline:
+        - apt-get update
+        - apt-get install -y --no-install-recommends python3 python3-pip sudo git curl ca-certificates
+        - apt-get install -y --no-install-recommends ansible || dpkg --configure -a && apt-get install -y --no-install-recommends ansible
+        - groupadd -g 1000 asdf
+        - useradd -m -u 1000 -g 1000 -s /bin/bash asdf
+        - echo 'asdf ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/asdf
+        - chmod 0440 /etc/sudoers.d/asdf
+        - mkdir -p /workspace
+        - chown -R asdf:asdf /workspace
+        - apt-get clean
+        - rm -rf /var/lib/apt/lists/*
+    - type: ansible
+      only:
+        - docker.arm64
+        - docker.amd64
+      playbook_path: ${PROVISION_REPO_PATH}/CowDogMoo/ansible-collection-workstation/playbooks/asdf/asdf.yml
+      extra_vars:
+        ansible_python_interpreter: /usr/bin/python3
+        ansible_shell_executable: /bin/bash
+        ansible_user_dir: /home/asdf
+        ansible_user_id: asdf
+        asdf_cleanup: "true"
+      ansible_env_vars:
+        - PACKER_BUILD_NAME={{ build_name }}
+        - ANSIBLE_ROLES_PATH=${PROVISION_REPO_PATH}/CowDogMoo/ansible-collection-workstation/roles
+      user: asdf
+    - type: shell
+      only:
+        - docker.arm64
+        - docker.amd64
+      inline:
+        - /tmp/post_ansible_cleanup.sh
+post_processors:
+    - type: docker-tag
+      repository: ghcr.io/cowdogmoo/asdf
+    - type: manifest
+      output: ./manifest.json
+      strip_path: true
+targets:
+    - type: container
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    - type: ami
+      instance_type: t3.micro
+      volume_size: 50

@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cowdogmoo/warpgate/main/schema/warpgate-template.json
 metadata:
     name: sliver
     version: 1.0.0
@@ -32,9 +33,9 @@ provisioners:
         - docker.arm64
         - docker.amd64
       inline:
-        - echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
         - apt-get update
         - apt-get install -y --no-install-recommends python3 python3-pip sudo
+        - apt-get install -y --no-install-recommends ansible || dpkg --configure -a && apt-get install -y --no-install-recommends ansible
         - rm -rf /var/lib/apt/lists/*
     - type: ansible
       only:
@@ -54,16 +55,7 @@ provisioners:
         - docker.arm64
         - docker.amd64
       inline:
-        - rm -rf /home/sliver/.ansible
-        - rm -rf /tmp/ansible*
-        - rm -rf /tmp/packer*
-        - sync
-        - chmod 755 /opt/sliver/sliver-server 2>/dev/null || true
-        - chmod 755 /opt/sliver/sliver-client 2>/dev/null || true
-        - rm -f /home/sliver/.bash_history
-        - rm -f /home/sliver/.wget-hsts
-        - history -c 2>/dev/null || true
-        - exit 0
+        - /tmp/post_ansible_cleanup.sh
 post_processors:
     - type: docker-tag
       repository: sliver
