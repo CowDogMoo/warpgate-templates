@@ -1,6 +1,6 @@
-# Atomic Red Team Warp Gate Template
+# TTPForge Warp Gate Template
 
-This template builds **Atomic Red Team** images using Warp Gate. It supports building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs** (Ubuntu-based EC2 images). The build provisions all required packages, sets up tools, and runs Ansible roles to configure the system for security testing and adversary emulation using Atomic Red Team's library of attack techniques.
+This template builds **TTPForge** images using Warp Gate. It supports building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs** (Ubuntu-based EC2 images). The build provisions all required packages, sets up tools, and runs Ansible roles to configure the system for TTP (Tactics, Techniques, and Procedures) execution and adversary emulation workflows.
 
 ---
 
@@ -21,7 +21,7 @@ This template builds **Atomic Red Team** images using Warp Gate. It supports bui
 
 The template configuration is managed in `warpgate.yaml`. Key settings include:
 
-- `name`: Template name (`atomic-red-team`)
+- `name`: Template name (`ttpforge`)
 - `base.image`: Base Docker image (Ubuntu Jammy 22.04)
 - `provisioners`: Shell and Ansible provisioners for setup
 - `targets`: Defines build targets (container images and AMIs)
@@ -34,22 +34,22 @@ Environment variables required:
 
 ## Building Docker Images
 
-This builds **Atomic Red Team** Docker images for `amd64` and `arm64` architectures, installs prerequisites, and provisions using Ansible roles.
+This builds **TTPForge** Docker images for `amd64` and `arm64` architectures, installs prerequisites, and provisions using Ansible roles.
 
 **Initialize the template:**
 
 ```bash
-warpgate init atomic-red-team
+warpgate init ttpforge
 ```
 
 **Build Docker images:**
 
 ```bash
 export PROVISION_REPO_PATH="${HOME}/ansible-collection-arsenal"
-warpgate build atomic-red-team --only 'docker.*'
+warpgate build ttpforge --only 'docker.*'
 ```
 
-After the build, multi-arch Atomic Red Team Docker images will be available locally as `atomic-red-team:latest`.
+After the build, multi-arch TTPForge Docker images will be available locally as `ttpforge:latest`.
 
 ---
 
@@ -59,7 +59,7 @@ To build an AWS AMI (Ubuntu-based, via `amazon-ebs`):
 
 ```bash
 export PROVISION_REPO_PATH="${HOME}/ansible-collection-arsenal"
-warpgate build atomic-red-team --only 'amazon-ebs.*'
+warpgate build ttpforge --only 'amazon-ebs.*'
 ```
 
 > 🛡️ Ensure your AWS credentials are configured and your IAM permissions allow SSM usage and AMI creation.
@@ -72,13 +72,13 @@ After building the Docker image, you can push it to GHCR:
 
 ```bash
 # Tag the image
-docker tag atomic-red-team:latest ghcr.io/YOUR_NAMESPACE/atomic-red-team:latest
+docker tag ttpforge:latest ghcr.io/YOUR_NAMESPACE/ttpforge:latest
 
 # Authenticate with GHCR
 echo $GITHUB_TOKEN | docker login ghcr.io -u YOUR_USERNAME --password-stdin
 
 # Push the image
-docker push ghcr.io/YOUR_NAMESPACE/atomic-red-team:latest
+docker push ghcr.io/YOUR_NAMESPACE/ttpforge:latest
 ```
 
 ---
@@ -88,7 +88,7 @@ docker push ghcr.io/YOUR_NAMESPACE/atomic-red-team:latest
 To validate the template configuration before building:
 
 ```bash
-warpgate validate atomic-red-team
+warpgate validate ttpforge
 ```
 
 ---
@@ -106,8 +106,8 @@ warpgate validate atomic-red-team
   - Multi-arch (`amd64` + `arm64`) and privileged for full testbed support.
   - Images are suitable for CI, local testing, or deployment in a Kubernetes cluster.
   - Default user: `root`
-  - Working directory: `/root/AtomicRedTeam`
-- The Atomic Red Team framework and atomics are provisioned via Ansible during the build.
+  - Working directory: `/root/ttpforge`
+- The TTPForge binaries are installed in `/opt/ttpforge` and added to the PATH.
 - The build includes cleanup steps to remove temporary files and Ansible artifacts.
 
 ---
@@ -120,12 +120,5 @@ To customize the build, edit the `warpgate.yaml` file:
 - Add or remove provisioning steps in the `provisioners` section
 - Adjust `targets` to change build platforms or AMI settings
 - Update environment variables in provisioners to change Ansible behavior
-- Modify the `ENTRYPOINT` environment variable to customize container startup behavior
 
 For more information on Warp Gate template configuration, see the [Warp Gate documentation](https://github.com/l50/warpgate).
-
----
-
-## About Atomic Red Team
-
-Atomic Red Team is a library of simple, focused tests mapped to the MITRE ATT&CK framework. It provides security teams with a way to test their defenses against specific adversary techniques in a controlled manner. For more information, visit the [Atomic Red Team GitHub repository](https://github.com/redcanaryco/atomic-red-team).

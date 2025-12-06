@@ -1,17 +1,17 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/cowdogmoo/warpgate/main/schema/warpgate-template.json
 metadata:
-    name: attack-box
+    name: ttpforge
     version: 1.0.0
-    description: This repository contains Packer templates to build **Attack-Box**
+    description: This repository contains Packer templates to build **TTPForge**
     author: Jayson Grace <jayson.e.grace@gmail.com>
     license: MIT
     tags: []
     requires:
         warpgate: '>=1.0.0'
-name: attack-box
+name: ttpforge
 version: latest
 base:
-    image: kalilinux/kali-last-release:latest
+    image: ubuntu:jammy
     pull: true
     privileged: true
     volumes:
@@ -23,9 +23,9 @@ base:
         - --cgroupns=host
         - '{{ .Image }}'
     changes:
-        - ENTRYPOINT ${ENTRYPOINT}
+        - ENV PATH=/opt/ttpforge:$PATH
         - USER root
-        - WORKDIR /root
+        - WORKDIR /root/ttpforge
 provisioners:
     - type: shell
       only:
@@ -34,24 +34,36 @@ provisioners:
       inline:
         - echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
         - apt-get update
-        - apt-get install -y python3 python3-pip sudo
+        - apt-get install -y --no-install-recommends python3 python3-pip sudo
+        - rm -rf /var/lib/apt/lists/*
     - type: ansible
       only:
         - docker.arm64
         - docker.amd64
-      playbook_path: ${PROVISION_REPO_PATH}/playbooks/attack_box/attack_box.yml
+      playbook_path: ${PROVISION_REPO_PATH}/playbooks/ttpforge/ttpforge.yml
       galaxy_file: ${PROVISION_REPO_PATH}/requirements.yml
       extra_vars:
         ansible_shell_executable: /bin/bash
+        ttpforge_cleanup: "true"
       ansible_env_vars:
         - PACKER_BUILD_NAME={{ build_name }}
+        - ANSIBLE_REMOTE_TMP=/tmp/ansible-tmp-$USER
+        - ANSIBLE_COLLECTIONS_PATH=$HOME/.ansible/collections:${PROVISION_REPO_PATH}
     - type: shell
       only:
         - docker.arm64
         - docker.amd64
       inline:
-        - apt-get clean
-        - rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+        - rm -rf /home/root/.ansible || true
+        - rm -rf /tmp/ansible* || true
+        - rm -rf /tmp/packer* || true
+        - sync
+        - rm -f /home/root/.bash_history || true
+        - rm -f /home/root/.wget-hsts || true
+        - history -c 2>/dev/null || true
+        - apt-get clean || true
+        - rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* || true
+        - exit 0
 post_processors:
     - type: manifest
       output: manifest.json
@@ -63,5 +75,5 @@ targets:
         - linux/arm64
     - type: ami
       region: us-east-1
-      instance_type: t3.micro
+      instance_type: t3.medium
       volume_size: 50
