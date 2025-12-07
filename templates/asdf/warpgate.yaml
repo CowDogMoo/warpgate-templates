@@ -17,14 +17,13 @@ base:
         - ENV ASDF_DIR=/home/asdf/.asdf
         - ENV ASDF_DATA_DIR=/home/asdf/.asdf
         - ENV PATH=/home/asdf/.asdf/shims:/home/asdf/.asdf/bin:$PATH
-        - USER asdf
-        - WORKDIR /workspace
-        - CMD ["/bin/bash"]
 provisioners:
     - type: shell
+      environment:
+        DEBIAN_FRONTEND: noninteractive
       inline:
         - apt-get update
-        - apt-get install -y --no-install-recommends python3 python3-pip sudo git curl ca-certificates
+        - apt-get install -y --no-install-recommends passwd python3 python3-pip sudo git curl ca-certificates
         - apt-get install -y --no-install-recommends ansible || dpkg --configure -a && apt-get install -y --no-install-recommends ansible
         - groupadd -g 1000 asdf
         - useradd -m -u 1000 -g 1000 -s /bin/bash asdf
@@ -55,6 +54,10 @@ provisioners:
         - docker.amd64
       inline:
         - /tmp/post_ansible_cleanup.sh
+post_changes:
+    - USER asdf
+    - WORKDIR /workspace
+    - CMD ["/bin/bash"]
 post_processors:
     - type: docker-tag
       repository: ghcr.io/cowdogmoo/asdf

@@ -22,8 +22,13 @@ base:
         - -t
         - --cgroupns=host
         - '{{ .Image }}'
+    environment:
+        DEBIAN_FRONTEND: noninteractive
+        TZ: UTC
     changes:
         - ENTRYPOINT ${ENTRYPOINT}
+        - ENV DEBIAN_FRONTEND=noninteractive
+        - ENV TZ=UTC
         - USER root
         - WORKDIR /root
 provisioners:

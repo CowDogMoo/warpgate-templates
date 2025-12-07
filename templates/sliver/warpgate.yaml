@@ -22,11 +22,14 @@ base:
         - -t
         - --cgroupns=host
         - '{{ .Image }}'
+    environment:
+        DEBIAN_FRONTEND: noninteractive
+        TZ: UTC
     changes:
         - ENTRYPOINT ${ENTRYPOINT}
-        - USER sliver
-        - WORKDIR /home/sliver
         - ENV PATH=/opt/sliver:/home/sliver/.sliver/go/bin:$PATH
+        - ENV DEBIAN_FRONTEND=noninteractive
+        - ENV TZ=UTC
 provisioners:
     - type: shell
       only:
@@ -34,8 +37,10 @@ provisioners:
         - docker.amd64
       inline:
         - apt-get update
-        - apt-get install -y --no-install-recommends python3 python3-pip sudo
-        - apt-get install -y --no-install-recommends ansible || dpkg --configure -a && apt-get install -y --no-install-recommends ansible
+        - apt-mark hold snapd || true
+        - apt-get remove -y snapd || true
+        - apt-get install -y --no-install-recommends python3 python3-pip sudo git
+        - apt-get install -y --no-install-recommends ansible || (dpkg --configure -a --force-depends && apt-get install -y --no-install-recommends ansible)
         - rm -rf /var/lib/apt/lists/*
     - type: ansible
       only:
@@ -56,6 +61,15 @@ provisioners:
         - docker.amd64
       inline:
         - /tmp/post_ansible_cleanup.sh
+    - type: shell
+      only:
+        - docker.arm64
+        - docker.amd64
+      inline:
+        - echo "Build completed successfully"
+      changes:
+        - USER sliver
+        - WORKDIR /home/sliver
 post_processors:
     - type: docker-tag
       repository: sliver
@@ -70,6 +84,7 @@ targets:
         - linux/amd64
         - linux/arm64
     - type: ami
+      ami_name: sliver-{{timestamp}}
       region: us-east-1
       instance_type: t3.micro
       volume_size: 50

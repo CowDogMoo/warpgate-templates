@@ -22,8 +22,13 @@ base:
         - -t
         - --cgroupns=host
         - '{{ .Image }}'
+    environment:
+        DEBIAN_FRONTEND: noninteractive
+        TZ: UTC
     changes:
         - ENV PATH=/opt/ttpforge:$PATH
+        - ENV DEBIAN_FRONTEND=noninteractive
+        - ENV TZ=UTC
         - USER root
         - WORKDIR /root/ttpforge
 provisioners:
