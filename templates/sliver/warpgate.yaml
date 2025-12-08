@@ -37,7 +37,8 @@ provisioners:
         - docker.amd64
       inline:
         - apt-get update
-        - apt-get install -y --no-install-recommends python3 python3-pip sudo git
+        - apt-get install -y --no-install-recommends python3 python3-pip git
+        - apt-get install -y sudo
         - apt-get install -y --no-install-recommends ansible || dpkg --configure -a && apt-get install -y --no-install-recommends ansible
         - rm -rf /var/lib/apt/lists/*
     - type: ansible
@@ -53,6 +54,7 @@ provisioners:
       ansible_env_vars:
         - PACKER_BUILD_NAME={{ build_name }}
         - ANSIBLE_REMOTE_TMP=/tmp/ansible-tmp-$USER
+        - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     - type: shell
       only:
         - docker.arm64
