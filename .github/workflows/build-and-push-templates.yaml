@@ -25,7 +25,7 @@ concurrency:
 
 env:
   GO_VERSION: "1.23"
-  WARPGATE_VERSION: "main"  # Use main branch for now, change to tag when released
+  WARPGATE_VERSION: "feat/go-rewrite"  # Use go-rewrite branch for now, change to tag when released
 
 jobs:
   discover-templates:
@@ -42,11 +42,16 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
+      - name: Install Task
+        run: |
+          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+
       - name: Install Warpgate
         run: |
           git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
           cd /tmp/warpgate
-          go build -o /usr/local/bin/warpgate ./cmd/warpgate
+          task -y go:build
+          sudo cp warpgate /usr/local/bin/warpgate
           warpgate version
 
       - name: Discover templates
@@ -81,11 +86,16 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
+      - name: Install Task
+        run: |
+          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+
       - name: Install Warpgate
         run: |
           git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
           cd /tmp/warpgate
-          go build -o /usr/local/bin/warpgate ./cmd/warpgate
+          task -y go:build
+          sudo cp warpgate /usr/local/bin/warpgate
           warpgate version
 
       - name: Set up Python for Ansible

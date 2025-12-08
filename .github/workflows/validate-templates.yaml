@@ -26,11 +26,16 @@ jobs:
         with:
           go-version: '1.23'
 
+      - name: Install Task
+        run: |
+          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+
       - name: Install Warpgate
         run: |
-          git clone https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
+          git clone --branch feat/go-rewrite https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
           cd /tmp/warpgate
-          go build -o /usr/local/bin/warpgate ./cmd/warpgate
+          task -y go:build
+          sudo cp warpgate /usr/local/bin/warpgate
           warpgate version
 
       - name: Find all templates
