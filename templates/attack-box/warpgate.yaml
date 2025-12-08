@@ -67,6 +67,7 @@ targets:
         - linux/amd64
         - linux/arm64
     - type: ami
+      ami_name: attack-box-{{timestamp}}
       region: us-east-1
       instance_type: t3.micro
       volume_size: 50

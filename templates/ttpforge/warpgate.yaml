@@ -53,7 +53,7 @@ provisioners:
       ansible_env_vars:
         - PACKER_BUILD_NAME={{ build_name }}
         - ANSIBLE_REMOTE_TMP=/tmp/ansible-tmp-$USER
-        - ANSIBLE_COLLECTIONS_PATH=$HOME/.ansible/collections:${PROVISION_REPO_PATH}
+        - "ANSIBLE_COLLECTIONS_PATH=$HOME/.ansible/collections:${PROVISION_REPO_PATH}"
     - type: shell
       only:
         - docker.arm64
@@ -79,6 +79,7 @@ targets:
         - linux/amd64
         - linux/arm64
     - type: ami
+      ami_name: ttpforge-{{timestamp}}
       region: us-east-1
       instance_type: t3.medium
       volume_size: 50

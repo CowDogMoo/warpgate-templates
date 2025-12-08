@@ -37,7 +37,7 @@ provisioners:
       only:
         - docker.arm64
         - docker.amd64
-      playbook_path: ${PROVISION_REPO_PATH}/CowDogMoo/ansible-collection-workstation/playbooks/asdf/asdf.yml
+      playbook_path: ${PROVISION_REPO_PATH}/playbooks/asdf/asdf.yml
       extra_vars:
         ansible_python_interpreter: /usr/bin/python3
         ansible_shell_executable: /bin/bash
@@ -46,7 +46,7 @@ provisioners:
         asdf_cleanup: "true"
       ansible_env_vars:
         - PACKER_BUILD_NAME={{ build_name }}
-        - ANSIBLE_ROLES_PATH=${PROVISION_REPO_PATH}/CowDogMoo/ansible-collection-workstation/roles
+        - ANSIBLE_ROLES_PATH=${PROVISION_REPO_PATH}/roles
       user: asdf
     - type: shell
       only:
@@ -70,5 +70,7 @@ targets:
         - linux/amd64
         - linux/arm64
     - type: ami
+      ami_name: asdf-{{timestamp}}
+      region: us-east-1
       instance_type: t3.micro
       volume_size: 50

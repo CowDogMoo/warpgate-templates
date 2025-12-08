@@ -1,0 +1,184 @@
+name: Build and Push Templates
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'templates/**'
+      - '.github/workflows/build-and-push-templates.yaml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'templates/**'
+      - '.github/workflows/build-and-push-templates.yaml'
+
+# Required for OIDC and pushing to GHCR
+permissions:
+  id-token: write
+  contents: read
+  packages: write
+
+concurrency:
+  cancel-in-progress: true
+  group: "${{ github.workflow }}-${{ github.ref }}"
+
+env:
+  GO_VERSION: "1.23"
+  WARPGATE_VERSION: "main"  # Use main branch for now, change to tag when released
+
+jobs:
+  discover-templates:
+    name: Discover templates
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+    steps:
+      - name: Checkout templates repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Install Warpgate
+        run: |
+          git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
+          cd /tmp/warpgate
+          go build -o /usr/local/bin/warpgate ./cmd/warpgate
+          warpgate version
+
+      - name: Discover templates
+        id: discover
+        run: |
+          # Add this repo as a local template source
+          warpgate config init
+          warpgate templates add $GITHUB_WORKSPACE
+
+          # Generate GHA matrix from local templates
+          MATRIX=$(warpgate templates list --source local --format gha-matrix --quiet)
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
+          # Display discovered templates for debugging
+          echo "Discovered template matrix:"
+          echo "$MATRIX" | jq .
+
+  build-and-push:
+    name: Build ${{ matrix.template.name }}
+    needs: discover-templates
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.discover-templates.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout templates repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Install Warpgate
+        run: |
+          git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
+          cd /tmp/warpgate
+          go build -o /usr/local/bin/warpgate ./cmd/warpgate
+          warpgate version
+
+      - name: Set up Python for Ansible
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Ansible
+        run: python3 -m pip install ansible
+
+      - name: Install Ansible Collections
+        if: matrix.template.vars != ''
+        run: |
+          # Clone ansible collections needed for provisioning
+          mkdir -p $HOME/ansible-collection-arsenal
+          git clone --depth 1 https://github.com/l50/ansible-collection-arsenal.git $HOME/ansible-collection-arsenal
+
+          # Build and install the collection
+          cd $HOME/ansible-collection-arsenal
+          ansible-galaxy collection build --force
+          ansible-galaxy collection install *.tar.gz --force
+
+      - name: Configure container runtime
+        run: |
+          # Configure containers.conf for runc runtime
+          sudo mkdir -p /etc/containers
+          sudo tee /etc/containers/containers.conf > /dev/null <<'EOF'
+          [engine]
+          runtime = "runc"
+
+          [engine.runtimes]
+          runc = [
+            "/usr/bin/runc"
+          ]
+          EOF
+
+          # Configure warpgate for Linux builds
+          mkdir -p ~/.config/warpgate
+          tee ~/.config/warpgate/config.yaml > /dev/null <<'EOF'
+          storage:
+            driver: vfs
+
+          container:
+            runtime: runc
+          EOF
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      - name: Build and Push Multi-Arch Image
+        run: |
+          # Configure warpgate to use local templates
+          warpgate config init
+          warpgate templates add $GITHUB_WORKSPACE
+
+          # Build for multiple architectures and push
+          warpgate build \
+            --template ${{ matrix.template.name }} \
+            --arch amd64,arm64 \
+            --push \
+            --registry ghcr.io/${{ matrix.template.namespace }} \
+            ${{ matrix.template.vars != '' && format('--var {0}', matrix.template.vars) || '' }}
+
+      - name: Verify Multi-Arch Manifest
+        run: |
+          docker buildx imagetools inspect ghcr.io/${{ matrix.template.namespace }}/${{ matrix.template.name }}:latest
+
+  build-summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [discover-templates, build-and-push]
+    if: always()
+    steps:
+      - name: Check build results
+        run: |
+          if [ "${{ needs.build-and-push.result }}" != "success" ] && [ "${{ needs.build-and-push.result }}" != "skipped" ]; then
+            echo "::error::One or more template builds failed"
+            exit 1
+          fi
+
+          if [ "${{ needs.build-and-push.result }}" == "skipped" ]; then
+            echo "Builds were skipped (likely a PR)"
+          else
+            echo "✓ All template builds completed successfully"
+          fi
