@@ -1,13 +1,14 @@
+---
 name: Validate Templates
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
     paths:
       - 'templates/**'
       - '.github/workflows/validate-templates.yaml'
   pull_request:
-    branches: [main, develop]
+    branches: [main]
     paths:
       - 'templates/**'
       - '.github/workflows/validate-templates.yaml'
@@ -44,16 +45,18 @@ jobs:
           templates=$(find templates -name 'warpgate.yaml' -type f)
           echo "Found templates:"
           echo "$templates"
-          echo "templates<<EOF" >> $GITHUB_OUTPUT
-          echo "$templates" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "templates<<EOF"
+            echo "$templates"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Validate templates with warpgate (syntax-only)
         run: |
           failed=0
           while IFS= read -r template; do
             if [ -n "$template" ]; then
-              template_name=$(basename $(dirname "$template"))
+              template_name=$(basename "$(dirname "$template")")
               echo "::group::Validating $template_name ($template)"
 
               if warpgate validate --syntax-only "$template"; then
@@ -338,7 +341,7 @@ jobs:
               print("Environment Variables Found:")
               print('='*80)
               for var in sorted(env_vars_found):
-                  print(f"  • ${{{var}}}")
+                  print(f"  • ${var}")
               print("\nNote: These environment variables should be documented in the README")
 
           if failed:

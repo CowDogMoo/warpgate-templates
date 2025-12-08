@@ -1,3 +1,4 @@
+---
 name: Build and Push Templates
 
 on:
@@ -59,11 +60,11 @@ jobs:
         run: |
           # Add this repo as a local template source
           warpgate config init
-          warpgate templates add $GITHUB_WORKSPACE
+          warpgate templates add "$GITHUB_WORKSPACE"
 
           # Generate GHA matrix from local templates
           MATRIX=$(warpgate templates list --source local --format gha-matrix --quiet)
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
           # Display discovered templates for debugging
           echo "Discovered template matrix:"
@@ -110,13 +111,13 @@ jobs:
         if: matrix.template.vars != ''
         run: |
           # Clone ansible collections needed for provisioning
-          mkdir -p $HOME/ansible-collection-arsenal
-          git clone --depth 1 https://github.com/l50/ansible-collection-arsenal.git $HOME/ansible-collection-arsenal
+          mkdir -p "$HOME/ansible-collection-arsenal"
+          git clone --depth 1 https://github.com/l50/ansible-collection-arsenal.git "$HOME/ansible-collection-arsenal"
 
           # Build and install the collection
-          cd $HOME/ansible-collection-arsenal
+          cd "$HOME/ansible-collection-arsenal"
           ansible-galaxy collection build --force
-          ansible-galaxy collection install *.tar.gz --force
+          ansible-galaxy collection install ./*.tar.gz --force
 
       - name: Configure container runtime
         run: |
@@ -160,11 +161,11 @@ jobs:
         run: |
           # Configure warpgate to use local templates
           warpgate config init
-          warpgate templates add $GITHUB_WORKSPACE
+          warpgate templates add "$GITHUB_WORKSPACE"
 
           # Build for multiple architectures and push
           warpgate build \
-            --template ${{ matrix.template.name }} \
+            --template "${{ matrix.template.name }}" \
             --arch amd64,arm64 \
             --push \
             --registry ghcr.io/${{ matrix.template.namespace }} \
