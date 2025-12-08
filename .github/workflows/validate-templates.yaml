@@ -1,17 +1,30 @@
 ---
 name: Validate Templates
-
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'templates/**'
-      - '.github/workflows/validate-templates.yaml'
+  merge_group:
   pull_request:
-    branches: [main]
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
     paths:
       - 'templates/**'
       - '.github/workflows/validate-templates.yaml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'templates/**'
+      - '.github/workflows/validate-templates.yaml'
+  workflow_dispatch:
+
+env:
+  GO_VERSION: "1.23"
+  PYTHON_VERSION: "3.11"
+  TASK_VERSION: "3.38.0"
+  TASK_X_REMOTE_TASKFILES: 1
 
 jobs:
   validate:
@@ -19,17 +32,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout git repository
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - name: Setup Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
         with:
-          go-version: '1.23'
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
 
       - name: Install Task
         run: |
-          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
+          task --version
 
       - name: Install Warpgate
         run: |
@@ -180,13 +195,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout git repository
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
-          python-version: '3.11'
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
         run: pip install pyyaml
@@ -233,13 +248,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout git repository
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
-          python-version: '3.11'
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
         run: pip install pyyaml

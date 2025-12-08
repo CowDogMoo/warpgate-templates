@@ -1,18 +1,24 @@
 ---
 name: Build and Push Templates
-
 on:
-  workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'templates/**'
-      - '.github/workflows/build-and-push-templates.yaml'
+  merge_group:
   pull_request:
-    branches: [main]
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
     paths:
       - 'templates/**'
       - '.github/workflows/build-and-push-templates.yaml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'templates/**'
+      - '.github/workflows/build-and-push-templates.yaml'
+  workflow_dispatch:
 
 # Required for OIDC and pushing to GHCR
 permissions:
@@ -26,6 +32,9 @@ concurrency:
 
 env:
   GO_VERSION: "1.23"
+  PYTHON_VERSION: "3.12"
+  TASK_VERSION: "3.38.0"
+  TASK_X_REMOTE_TASKFILES: 1
   WARPGATE_VERSION: "feat/go-rewrite"  # Use go-rewrite branch for now, change to tag when released
 
 jobs:
@@ -35,17 +44,19 @@ jobs:
     outputs:
       matrix: ${{ steps.discover.outputs.matrix }}
     steps:
-      - name: Checkout templates repository
-        uses: actions/checkout@v4
+      - name: Checkout git repository
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - name: Setup Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
+          check-latest: true
 
       - name: Install Task
         run: |
-          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
+          task --version
 
       - name: Install Warpgate
         run: |
@@ -79,17 +90,19 @@ jobs:
       matrix: ${{ fromJson(needs.discover-templates.outputs.matrix) }}
       fail-fast: false
     steps:
-      - name: Checkout templates repository
-        uses: actions/checkout@v4
+      - name: Checkout git repository
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - name: Setup Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
         with:
           go-version: ${{ env.GO_VERSION }}
+          check-latest: true
 
       - name: Install Task
         run: |
-          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
+          task --version
 
       - name: Install Warpgate
         run: |
@@ -99,10 +112,10 @@ jobs:
           sudo cp warpgate /usr/local/bin/warpgate
           warpgate version
 
-      - name: Set up Python for Ansible
-        uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
-          python-version: '3.12'
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install Ansible
         run: python3 -m pip install ansible
@@ -144,7 +157,7 @@ jobs:
           EOF
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@74b5eec4d7a4c5fd760b73b2c2274e4c6991a81e # v3.4.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
