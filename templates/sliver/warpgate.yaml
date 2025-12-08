@@ -37,10 +37,8 @@ provisioners:
         - docker.amd64
       inline:
         - apt-get update
-        - apt-mark hold snapd || true
-        - apt-get remove -y snapd || true
         - apt-get install -y --no-install-recommends python3 python3-pip sudo git
-        - apt-get install -y --no-install-recommends ansible || (dpkg --configure -a --force-depends && apt-get install -y --no-install-recommends ansible)
+        - apt-get install -y --no-install-recommends ansible || dpkg --configure -a && apt-get install -y --no-install-recommends ansible
         - rm -rf /var/lib/apt/lists/*
     - type: ansible
       only:
