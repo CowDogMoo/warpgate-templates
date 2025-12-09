@@ -187,7 +187,7 @@ jobs:
       - name: Build and Push Multi-Arch Image
         run: |
           # Configure warpgate to use local templates
-          warpgate config init
+          warpgate config init --force
           warpgate templates add "$GITHUB_WORKSPACE"
 
           # Build for multiple architectures and push
