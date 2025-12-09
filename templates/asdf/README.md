@@ -1,6 +1,10 @@
 # asdf Version Manager Warp Gate Template
 
-This template builds **asdf version manager** images using Warp Gate. It supports building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs** (Ubuntu-based EC2 images). The build provisions a minimal container image with asdf installed, enabling easy management of multiple runtime versions for various programming languages and tools.
+This template builds **asdf version manager** images using Warp Gate. It
+supports building both **Docker images** (for `amd64` and `arm64`) and AWS
+**AMIs** (Ubuntu-based EC2 images). The build provisions a minimal container
+image with asdf installed, enabling easy management of multiple runtime
+versions for various programming languages and tools.
 
 ---
 
@@ -34,7 +38,8 @@ Environment variables required:
 
 ## Building Docker Images
 
-This builds **asdf** Docker images for `amd64` and `arm64` architectures, installs prerequisites, and provisions using Ansible roles.
+This builds **asdf** Docker images for `amd64` and `arm64` architectures,
+installs prerequisites, and provisions using Ansible roles.
 
 **Initialize the template:**
 
@@ -62,7 +67,8 @@ export PROVISION_REPO_PATH="${HOME}/ansible-collections"
 warpgate build asdf --only 'amazon-ebs.*'
 ```
 
-> 🛡️ Ensure your AWS credentials are configured and your IAM permissions allow SSM usage and AMI creation.
+> 🛡️ Ensure your AWS credentials are configured and your IAM permissions
+> allow SSM usage and AMI creation.
 
 ---
 
@@ -97,7 +103,9 @@ warpgate validate asdf
 
 ## Notes
 
-- The build uses both **shell and Ansible provisioners**. Ensure your provisioning playbooks and requirement files are available at the path specified by `PROVISION_REPO_PATH`.
+- The build uses both **shell and Ansible provisioners**. Ensure your
+  provisioning playbooks and requirement files are available at the path
+  specified by `PROVISION_REPO_PATH`.
 - **AMI build:**
   - Creates and tags an AMI in your AWS account.
   - Designed to use SSM (Session Manager) for connections where possible.
@@ -105,8 +113,10 @@ warpgate validate asdf
   - Default instance type: `t3.micro`
   - Default volume size: 50GB
 - **Docker build:**
-  - Multi-arch (`amd64` + `arm64`) suitable for various development workflows.
-  - Images are ideal for CI/CD pipelines, local development, or as base images for other projects.
+  - Multi-arch (`amd64` + `arm64`) suitable for various development
+    workflows.
+  - Images are ideal for CI/CD pipelines, local development, or as base
+    images for other projects.
   - Default user: `asdf` (non-root user with sudo access)
   - Working directory: `/workspace`
   - Default shell: `/bin/bash`
@@ -115,7 +125,8 @@ warpgate validate asdf
   - `ASDF_DIR=/home/asdf/.asdf`
   - `ASDF_DATA_DIR=/home/asdf/.asdf`
   - `PATH` includes asdf shims and bin directories
-- The build includes cleanup steps to remove temporary files and Ansible artifacts via `/tmp/post_ansible_cleanup.sh`.
+- The build includes cleanup steps to remove temporary files and Ansible
+  artifacts via `/tmp/post_ansible_cleanup.sh`.
 
 ---
 
@@ -158,4 +169,8 @@ For more information on Warp Gate template configuration, see the [Warp Gate doc
 
 ## About asdf
 
-asdf is a CLI tool that manages multiple runtime versions with a single CLI tool. It provides a unified interface for version management across many languages and tools, eliminating the need for language-specific version managers. For more information, visit the [asdf website](https://asdf-vm.com/).
+asdf is a CLI tool that manages multiple runtime versions with a single CLI
+tool. It provides a unified interface for version management across many
+languages and tools, eliminating the need for language-specific version
+managers. For more information, visit the
+[asdf website](https://asdf-vm.com/).

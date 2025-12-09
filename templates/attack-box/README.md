@@ -1,6 +1,10 @@
 # Attack Box Warp Gate Template
 
-This template builds **Attack Box** images using Warp Gate. It supports building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs** (Kali Linux-based EC2 images). The build provisions a comprehensive offensive security testing environment based on Kali Linux, equipped with penetration testing tools and frameworks for security assessments and red team operations.
+This template builds **Attack Box** images using Warp Gate. It supports
+building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs**
+(Kali Linux-based EC2 images). The build provisions a comprehensive offensive
+security testing environment based on Kali Linux, equipped with penetration
+testing tools and frameworks for security assessments and red team operations.
 
 ---
 
@@ -34,7 +38,8 @@ Environment variables required:
 
 ## Building Docker Images
 
-This builds **Attack Box** Docker images for `amd64` and `arm64` architectures, installs prerequisites, and provisions using Ansible roles.
+This builds **Attack Box** Docker images for `amd64` and `arm64`
+architectures, installs prerequisites, and provisions using Ansible roles.
 
 **Initialize the template:**
 
@@ -49,7 +54,8 @@ export PROVISION_REPO_PATH="${HOME}/ansible-collection-arsenal"
 warpgate build attack-box --only 'docker.*'
 ```
 
-After the build, multi-arch Attack Box Docker images will be available locally as `attack-box:latest`.
+After the build, multi-arch Attack Box Docker images will be available
+locally as `attack-box:latest`.
 
 ---
 
@@ -62,7 +68,8 @@ export PROVISION_REPO_PATH="${HOME}/ansible-collection-arsenal"
 warpgate build attack-box --only 'amazon-ebs.*'
 ```
 
-> 🛡️ Ensure your AWS credentials are configured and your IAM permissions allow SSM usage and AMI creation.
+> 🛡️ Ensure your AWS credentials are configured and your IAM permissions
+> allow SSM usage and AMI creation.
 
 ---
 
@@ -95,7 +102,9 @@ warpgate validate attack-box
 
 ## Notes
 
-- The build uses both **shell and Ansible provisioners**. Ensure your provisioning playbooks and requirement files are available at the path specified by `PROVISION_REPO_PATH`.
+- The build uses both **shell and Ansible provisioners**. Ensure your
+  provisioning playbooks and requirement files are available at the path
+  specified by `PROVISION_REPO_PATH`.
 - **AMI build:**
   - Creates and tags an AMI in your AWS account.
   - Designed to use SSM (Session Manager) for connections where possible.
@@ -104,7 +113,8 @@ warpgate validate attack-box
   - Default volume size: 50GB
 - **Docker build:**
   - Multi-arch (`amd64` + `arm64`) and privileged for full security testing capabilities.
-  - Images are suitable for penetration testing labs, red team operations, or security training environments.
+  - Images are suitable for penetration testing labs, red team operations,
+    or security training environments.
   - Default user: `root`
   - Working directory: `/root`
   - Based on **Kali Linux**, providing access to extensive penetration testing tools.
@@ -115,9 +125,11 @@ warpgate validate attack-box
 
 ## Security Considerations
 
-**IMPORTANT:** This template creates an offensive security testing environment. Use responsibly and only in authorized environments:
+**IMPORTANT:** This template creates an offensive security testing
+environment. Use responsibly and only in authorized environments:
 
-- Only deploy in isolated testing environments or authorized penetration testing scenarios
+- Only deploy in isolated testing environments or authorized penetration
+  testing scenarios
 - Ensure proper network segmentation when running Attack Box containers or AMIs
 - Follow responsible disclosure practices for any vulnerabilities discovered
 - Comply with all applicable laws and regulations regarding security testing
@@ -141,4 +153,7 @@ For more information on Warp Gate template configuration, see the [Warp Gate doc
 
 ## About Kali Linux
 
-Kali Linux is a Debian-based Linux distribution designed for digital forensics and penetration testing. It includes numerous security tools for information security professionals. For more information, visit the [Kali Linux website](https://www.kali.org/).
+Kali Linux is a Debian-based Linux distribution designed for digital
+forensics and penetration testing. It includes numerous security tools for
+information security professionals. For more information, visit the
+[Kali Linux website](https://www.kali.org/).

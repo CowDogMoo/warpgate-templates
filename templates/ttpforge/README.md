@@ -1,6 +1,10 @@
 # TTPForge Warp Gate Template
 
-This template builds **TTPForge** images using Warp Gate. It supports building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs** (Ubuntu-based EC2 images). The build provisions all required packages, sets up tools, and runs Ansible roles to configure the system for TTP (Tactics, Techniques, and Procedures) execution and adversary emulation workflows.
+This template builds **TTPForge** images using Warp Gate. It supports
+building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs**
+(Ubuntu-based EC2 images). The build provisions all required packages, sets
+up tools, and runs Ansible roles to configure the system for TTP (Tactics,
+Techniques, and Procedures) execution and adversary emulation workflows.
 
 ---
 
@@ -34,7 +38,8 @@ Environment variables required:
 
 ## Building Docker Images
 
-This builds **TTPForge** Docker images for `amd64` and `arm64` architectures, installs prerequisites, and provisions using Ansible roles.
+This builds **TTPForge** Docker images for `amd64` and `arm64` architectures,
+installs prerequisites, and provisions using Ansible roles.
 
 **Initialize the template:**
 
@@ -62,7 +67,8 @@ export PROVISION_REPO_PATH="${HOME}/ansible-collection-arsenal"
 warpgate build ttpforge --only 'amazon-ebs.*'
 ```
 
-> 🛡️ Ensure your AWS credentials are configured and your IAM permissions allow SSM usage and AMI creation.
+> 🛡️ Ensure your AWS credentials are configured and your IAM permissions
+> allow SSM usage and AMI creation.
 
 ---
 
@@ -95,7 +101,9 @@ warpgate validate ttpforge
 
 ## Notes
 
-- The build uses both **shell and Ansible provisioners**. Ensure your provisioning playbooks and requirement files are available at the path specified by `PROVISION_REPO_PATH`.
+- The build uses both **shell and Ansible provisioners**. Ensure your
+  provisioning playbooks and requirement files are available at the path
+  specified by `PROVISION_REPO_PATH`.
 - **AMI build:**
   - Creates and tags an AMI in your AWS account.
   - Designed to use SSM (Session Manager) for connections where possible.

@@ -80,6 +80,18 @@ jobs:
 
           # Generate GHA matrix from local templates
           MATRIX=$(warpgate templates list --source local --format gha-matrix --quiet)
+
+          # Add provision_repo field to each template based on which repo they need
+          MATRIX=$(echo "$MATRIX" | jq '.include |= map(
+            if .name == "sliver" then
+              . + {"provision_repo": "ansible-collection-arsenal", "provision_repo_path": "ansible-collection-arsenal"}
+            elif .name == "ttpforge" or .name == "atomic-red-team" or .name == "asdf" or .name == "attack-box" then
+              . + {"provision_repo": "ansible-collection-workstation", "provision_repo_path": "CowDogMoo/ansible-collection-workstation"}
+            else
+              .
+            end
+          )')
+
           {
             echo "matrix<<EOF"
             echo "$MATRIX"
@@ -121,46 +133,40 @@ jobs:
       - name: Install Ansible
         run: python3 -m pip install ansible
 
-      - name: Clone ansible-collection repositories
-        if: matrix.template.vars != ''
+      - name: Clone ansible-collection repository
+        if: matrix.template.provision_repo != ''
         run: |
-          mkdir -p "$HOME/CowDogMoo"
-          git clone https://github.com/CowDogMoo/ansible-collection-workstation.git "$HOME/CowDogMoo/ansible-collection-workstation"
-          git clone https://github.com/l50/ansible-collection-arsenal.git "$HOME/ansible-collection-arsenal"
-          git clone https://github.com/l50/ansible-collection-bulwark.git "$HOME/ansible-collection-bulwark"
+          if [ "${{ matrix.template.provision_repo }}" == "ansible-collection-workstation" ]; then
+            mkdir -p "$HOME/CowDogMoo"
+            git clone https://github.com/CowDogMoo/ansible-collection-workstation.git "$HOME/CowDogMoo/ansible-collection-workstation"
+          elif [ "${{ matrix.template.provision_repo }}" == "ansible-collection-arsenal" ]; then
+            git clone https://github.com/l50/ansible-collection-arsenal.git "$HOME/ansible-collection-arsenal"
+          fi
 
-      - name: Install Ansible Collections
-        if: matrix.template.vars != ''
+      - name: Install Ansible Collection
+        if: matrix.template.provision_repo != ''
         run: |
           # Create the ansible collections directory
           mkdir -p "$HOME/.ansible/collections"
 
-          # Build and install CowDogMoo workstation collection
-          cd "$HOME/CowDogMoo/ansible-collection-workstation"
-          ansible-galaxy collection build --force
-          ansible-galaxy collection install \
-            cowdogmoo-workstation-*.tar.gz \
-            -p "$HOME/.ansible/collections" \
-            --force \
-            --pre
-
-          # Build and install l50 arsenal collection
-          cd "$HOME/ansible-collection-arsenal"
-          ansible-galaxy collection build --force
-          ansible-galaxy collection install \
-            l50-arsenal-*.tar.gz \
-            -p "$HOME/.ansible/collections" \
-            --force \
-            --pre
-
-          # Build and install l50 bulwark collection
-          cd "$HOME/ansible-collection-bulwark"
-          ansible-galaxy collection build --force
-          ansible-galaxy collection install \
-            l50-bulwark-*.tar.gz \
-            -p "$HOME/.ansible/collections" \
-            --force \
-            --pre
+          # Build and install the required collection
+          if [ "${{ matrix.template.provision_repo }}" == "ansible-collection-workstation" ]; then
+            cd "$HOME/CowDogMoo/ansible-collection-workstation"
+            ansible-galaxy collection build --force
+            ansible-galaxy collection install \
+              cowdogmoo-workstation-*.tar.gz \
+              -p "$HOME/.ansible/collections" \
+              --force \
+              --pre
+          elif [ "${{ matrix.template.provision_repo }}" == "ansible-collection-arsenal" ]; then
+            cd "$HOME/ansible-collection-arsenal"
+            ansible-galaxy collection build --force
+            ansible-galaxy collection install \
+              l50-arsenal-*.tar.gz \
+              -p "$HOME/.ansible/collections" \
+              --force \
+              --pre
+          fi
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -176,32 +182,100 @@ jobs:
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
-      - name: Pull warpgate Docker image
+      - name: Install System Dependencies
         run: |
-          docker pull ghcr.io/cowdogmoo/warpgate:latest
+          sudo apt-get update
+          sudo apt-get install -y libgpgme-dev libbtrfs-dev
 
-      - name: Build and Push Multi-Arch Image
+      - name: Install Warpgate
         run: |
-          # Run warpgate in Docker container with privileged mode (like local script)
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "$GITHUB_WORKSPACE/templates/${{ matrix.template.name }}/warpgate.yaml:/workspace/warpgate.yaml:ro" \
-            -v "$HOME/ansible-collection-arsenal:/provision/arsenal:ro" \
-            -v "$HOME/CowDogMoo/ansible-collection-workstation:/provision/workstation:ro" \
-            -v "$HOME/ansible-collection-bulwark:/provision/bulwark:ro" \
-            -e ARSENAL_REPO_PATH=/provision/arsenal \
-            -e WORKSTATION_REPO_PATH=/provision/workstation \
-            -e PROVISION_REPO_PATH=/provision/workstation \
-            -e BULWARK_REPO_PATH=/provision/bulwark \
-            -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
-            --privileged \
-            --security-opt seccomp=unconfined \
-            --security-opt apparmor=unconfined \
-            ghcr.io/cowdogmoo/warpgate:latest \
-            build /workspace/warpgate.yaml \
-            --arch amd64,arm64 \
-            --push \
-            --registry ghcr.io/${{ matrix.template.namespace }}
+          git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
+          cd /tmp/warpgate
+          task -y go:build
+          sudo cp warpgate /usr/local/bin/warpgate
+          warpgate version
+
+      - name: Install Buildah and Container Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y buildah podman runc
+
+      - name: Configure Container Storage (VFS driver)
+        run: |
+          sudo mkdir -p /etc/containers
+          sudo tee /etc/containers/storage.conf > /dev/null <<EOF
+          [storage]
+          driver = "vfs"
+          runroot = "/run/containers/storage"
+          graphroot = "/var/lib/containers/storage"
+
+          [storage.options]
+          pull_options = {enable_partial_images = "false", use_hard_links = "false", ostree_repos=""}
+          EOF
+
+          echo "Storage configuration:"
+          cat /etc/containers/storage.conf
+
+      - name: Configure Container Runtime (runc)
+        run: |
+          sudo tee /etc/containers/containers.conf > /dev/null <<EOF
+          [engine]
+          runtime = "runc"
+
+          [engine.runtimes]
+          runc = [
+            "/usr/bin/runc"
+          ]
+          EOF
+
+          echo "Runtime configuration:"
+          cat /etc/containers/containers.conf
+
+      - name: Build Multi-Arch Images
+        run: |
+          # Run warpgate natively with sudo (Linux native execution)
+          cd "$GITHUB_WORKSPACE/templates/${{ matrix.template.name }}"
+
+          export PROVISION_REPO_PATH="$HOME/${{ matrix.template.provision_repo_path }}"
+
+          sudo -E warpgate build warpgate.yaml \
+            --arch amd64,arm64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag and Push Multi-Arch Images
+        run: |
+          set -e
+
+          IMAGE_NAME="${{ matrix.template.name }}"
+          REGISTRY="ghcr.io/${{ matrix.template.namespace }}"
+
+          # List all built images to understand warpgate's tagging
+          echo "=== Available images ==="
+          sudo buildah images
+
+          # Tag and push amd64 image
+          echo "=== Tagging and pushing amd64 ==="
+          sudo buildah tag localhost/${IMAGE_NAME}:latest-amd64 ${REGISTRY}/${IMAGE_NAME}:latest-amd64
+          sudo buildah push ${REGISTRY}/${IMAGE_NAME}:latest-amd64
+
+          # Tag and push arm64 image
+          echo "=== Tagging and pushing arm64 ==="
+          sudo buildah tag localhost/${IMAGE_NAME}:latest-arm64 ${REGISTRY}/${IMAGE_NAME}:latest-arm64
+          sudo buildah push ${REGISTRY}/${IMAGE_NAME}:latest-arm64
+
+          # Create and push multi-arch manifest
+          echo "=== Creating multi-arch manifest ==="
+          sudo buildah manifest create ${REGISTRY}/${IMAGE_NAME}:latest
+          sudo buildah manifest add ${REGISTRY}/${IMAGE_NAME}:latest ${REGISTRY}/${IMAGE_NAME}:latest-amd64
+          sudo buildah manifest add ${REGISTRY}/${IMAGE_NAME}:latest ${REGISTRY}/${IMAGE_NAME}:latest-arm64
+
+          echo "=== Pushing manifest ==="
+          sudo buildah manifest push --all ${REGISTRY}/${IMAGE_NAME}:latest docker://${REGISTRY}/${IMAGE_NAME}:latest
+
+          echo "=== Multi-arch push complete ==="
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify Multi-Arch Manifest
         run: |

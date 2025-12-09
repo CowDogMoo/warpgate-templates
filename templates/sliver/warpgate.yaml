@@ -45,8 +45,8 @@ provisioners:
       only:
         - docker.arm64
         - docker.amd64
-      playbook_path: ${ARSENAL_REPO_PATH}/playbooks/sliver/sliver.yml
-      galaxy_file: ${ARSENAL_REPO_PATH}/requirements.yml
+      playbook_path: ${PROVISION_REPO_PATH}/playbooks/sliver/sliver.yml
+      galaxy_file: ${PROVISION_REPO_PATH}/requirements.yml
       extra_vars:
         ansible_shell_executable: /bin/bash
         sliver_cleanup: "true"

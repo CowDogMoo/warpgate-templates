@@ -1,6 +1,10 @@
 # Sliver C2 Warp Gate Template
 
-This template builds **Sliver C2** images using Warp Gate. It supports building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs** (Ubuntu-based EC2 images). The build provisions all required packages, sets up tools, and runs Ansible roles to configure the system for robust TTP simulation and testing workflows.
+This template builds **Sliver C2** images using Warp Gate. It supports
+building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs**
+(Ubuntu-based EC2 images). The build provisions all required packages, sets
+up tools, and runs Ansible roles to configure the system for robust TTP
+simulation and testing workflows.
 
 ---
 
@@ -9,7 +13,8 @@ This template builds **Sliver C2** images using Warp Gate. It supports building 
 - [Warp Gate](https://github.com/l50/warpgate) installed and configured
 - Docker (for building Docker images)
 - AWS credentials with permissions to create AMIs (for AMI builds)
-- Arsenal provisioning repository with the `ARSENAL_REPO_PATH` environment variable set
+- Provisioning repository (ansible-collection-arsenal) with the
+  `PROVISION_REPO_PATH` environment variable set
 - Required Packer plugins (installed automatically via `warpgate init`):
   - `amazon`
   - `docker`
@@ -28,13 +33,14 @@ The template configuration is managed in `warpgate.yaml`. Key settings include:
 
 Environment variables required:
 
-- `ARSENAL_REPO_PATH`: Path to your ansible-collection-arsenal repository
+- `PROVISION_REPO_PATH`: Path to your ansible-collection-arsenal repository
 
 ---
 
 ## Building Docker Images
 
-This builds **Sliver** Docker images for `amd64` and `arm64` architectures, installs prerequisites, and provisions using Ansible roles.
+This builds **Sliver** Docker images for `amd64` and `arm64` architectures,
+installs prerequisites, and provisions using Ansible roles.
 
 **Initialize the template:**
 
@@ -45,7 +51,7 @@ warpgate init sliver
 **Build Docker images:**
 
 ```bash
-export ARSENAL_REPO_PATH="${HOME}/ansible-collection-arsenal"
+export PROVISION_REPO_PATH="${HOME}/ansible-collection-arsenal"
 warpgate build sliver --only 'docker.*'
 ```
 
@@ -58,11 +64,12 @@ After the build, multi-arch Sliver Docker images will be available locally as `s
 To build an AWS AMI (Ubuntu-based, via `amazon-ebs`):
 
 ```bash
-export ARSENAL_REPO_PATH="${HOME}/ansible-collection-arsenal"
+export PROVISION_REPO_PATH="${HOME}/ansible-collection-arsenal"
 warpgate build sliver --only 'amazon-ebs.*'
 ```
 
-> 🛡️ Ensure your AWS credentials are configured and your IAM permissions allow SSM usage and AMI creation.
+> 🛡️ Ensure your AWS credentials are configured and your IAM permissions
+> allow SSM usage and AMI creation.
 
 ---
 
@@ -95,7 +102,9 @@ warpgate validate sliver
 
 ## Notes
 
-- The build uses both **shell and Ansible provisioners**. Ensure your Arsenal provisioning playbooks and requirement files are available at the path specified by `ARSENAL_REPO_PATH`.
+- The build uses both **shell and Ansible provisioners**. Ensure your
+  provisioning playbooks and requirement files are available at the path
+  specified by `PROVISION_REPO_PATH`.
 - **AMI build:**
   - Creates and tags an AMI in your AWS account.
   - Designed to use SSM (Session Manager) for connections where possible.

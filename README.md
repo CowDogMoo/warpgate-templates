@@ -1,10 +1,15 @@
 # Warpgate Templates
 
-Official template repository for [Warpgate](https://github.com/cowdogmoo/warpgate) - security-focused container and AMI images.
+Official template repository for
+[Warpgate](https://github.com/cowdogmoo/warpgate) - security-focused
+container and AMI images.
 
 ## Overview
 
-This repository contains pre-built Warpgate templates for deploying security tooling, red team infrastructure, and penetration testing environments. All templates support both **container images** (multi-arch: amd64/arm64) and **AWS AMIs**.
+This repository contains pre-built Warpgate templates for deploying
+security tooling, red team infrastructure, and penetration testing
+environments. All templates support both **container images** (multi-arch:
+amd64/arm64) and **AWS AMIs**.
 
 ## Available Templates
 
@@ -77,7 +82,7 @@ metadata:
     - security
     - red-team
   requires:
-    warpgate: '>=1.0.0'
+    warpgate: ">=1.0.0"
 
 name: template-name
 version: latest
@@ -116,8 +121,8 @@ targets:
 
 Many templates use environment variables for paths to provisioning code:
 
-- `PROVISION_REPO_PATH` - Path to ansible-collection-arsenal or similar provisioning repos
-- `ARSENAL_REPO_PATH` - Alias for `PROVISION_REPO_PATH` used by some templates
+- `PROVISION_REPO_PATH` - Path to ansible-collection-arsenal or similar
+  provisioning repos
 
 Set these before building:
 
@@ -128,7 +133,8 @@ warpgate build --template attack-box
 
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on:
+We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for
+guidelines on:
 
 - Creating new templates
 - Improving existing templates
@@ -176,9 +182,11 @@ warpgate-templates/
 
 ## License
 
-This repository is licensed under the MIT License - see [LICENSE](./LICENSE) file for details.
+This repository is licensed under the MIT License - see [LICENSE](./LICENSE)
+file for details.
 
-Individual templates may have specific licensing requirements - check each template's README.md.
+Individual templates may have specific licensing requirements - check each
+template's README.md.
 
 ## Support
 
@@ -189,8 +197,10 @@ Individual templates may have specific licensing requirements - check each templ
 ## Related Projects
 
 - [Warpgate](https://github.com/cowdogmoo/warpgate) - The core build tool
-- [ansible-collection-arsenal](https://github.com/l50/ansible-collection-arsenal) - Ansible roles for security tooling
-- [ansible-collection-workstation](https://github.com/CowDogMoo/ansible-collection-workstation) - Ansible roles for workstation setup
+- [ansible-collection-arsenal](https://github.com/l50/ansible-collection-arsenal)
+  \- Ansible roles for security tooling
+- [ansible-collection-workstation](https://github.com/CowDogMoo/ansible-collection-workstation)
+  \- Ansible roles for workstation setup
 
 ---
 

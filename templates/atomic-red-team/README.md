@@ -1,6 +1,10 @@
 # Atomic Red Team Warp Gate Template
 
-This template builds **Atomic Red Team** images using Warp Gate. It supports building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs** (Ubuntu-based EC2 images). The build provisions all required packages, sets up tools, and runs Ansible roles to configure the system for security testing and adversary emulation using Atomic Red Team's library of attack techniques.
+This template builds **Atomic Red Team** images using Warp Gate. It supports
+building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs**
+(Ubuntu-based EC2 images). The build provisions all required packages, sets
+up tools, and runs Ansible roles to configure the system for security testing
+and adversary emulation using Atomic Red Team's library of attack techniques.
 
 ---
 
@@ -34,7 +38,8 @@ Environment variables required:
 
 ## Building Docker Images
 
-This builds **Atomic Red Team** Docker images for `amd64` and `arm64` architectures, installs prerequisites, and provisions using Ansible roles.
+This builds **Atomic Red Team** Docker images for `amd64` and `arm64`
+architectures, installs prerequisites, and provisions using Ansible roles.
 
 **Initialize the template:**
 
@@ -49,7 +54,8 @@ export PROVISION_REPO_PATH="${HOME}/ansible-collection-arsenal"
 warpgate build atomic-red-team --only 'docker.*'
 ```
 
-After the build, multi-arch Atomic Red Team Docker images will be available locally as `atomic-red-team:latest`.
+After the build, multi-arch Atomic Red Team Docker images will be available
+locally as `atomic-red-team:latest`.
 
 ---
 
@@ -62,7 +68,8 @@ export PROVISION_REPO_PATH="${HOME}/ansible-collection-arsenal"
 warpgate build atomic-red-team --only 'amazon-ebs.*'
 ```
 
-> 🛡️ Ensure your AWS credentials are configured and your IAM permissions allow SSM usage and AMI creation.
+> 🛡️ Ensure your AWS credentials are configured and your IAM permissions
+> allow SSM usage and AMI creation.
 
 ---
 
@@ -95,7 +102,9 @@ warpgate validate atomic-red-team
 
 ## Notes
 
-- The build uses both **shell and Ansible provisioners**. Ensure your provisioning playbooks and requirement files are available at the path specified by `PROVISION_REPO_PATH`.
+- The build uses both **shell and Ansible provisioners**. Ensure your
+  provisioning playbooks and requirement files are available at the path
+  specified by `PROVISION_REPO_PATH`.
 - **AMI build:**
   - Creates and tags an AMI in your AWS account.
   - Designed to use SSM (Session Manager) for connections where possible.
@@ -107,7 +116,8 @@ warpgate validate atomic-red-team
   - Images are suitable for CI, local testing, or deployment in a Kubernetes cluster.
   - Default user: `root`
   - Working directory: `/root/AtomicRedTeam`
-- The Atomic Red Team framework and atomics are provisioned via Ansible during the build.
+- The Atomic Red Team framework and atomics are provisioned via Ansible
+  during the build.
 - The build includes cleanup steps to remove temporary files and Ansible artifacts.
 
 ---
@@ -128,4 +138,8 @@ For more information on Warp Gate template configuration, see the [Warp Gate doc
 
 ## About Atomic Red Team
 
-Atomic Red Team is a library of simple, focused tests mapped to the MITRE ATT&CK framework. It provides security teams with a way to test their defenses against specific adversary techniques in a controlled manner. For more information, visit the [Atomic Red Team GitHub repository](https://github.com/redcanaryco/atomic-red-team).
+Atomic Red Team is a library of simple, focused tests mapped to the MITRE
+ATT&CK framework. It provides security teams with a way to test their defenses
+against specific adversary techniques in a controlled manner. For more
+information, visit the
+[Atomic Red Team GitHub repository](https://github.com/redcanaryco/atomic-red-team).
