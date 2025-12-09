@@ -150,7 +150,7 @@ jobs:
         run: |
           # Create and configure lock directory
           sudo mkdir -p /run/lock
-          sudo chown -R $(id -u):$(id -g) /run/lock
+          sudo chown -R "$(id -u):$(id -g)" /run/lock
           sudo chmod -R 755 /run/lock
 
           # Configure storage for rootless mode
