@@ -80,7 +80,11 @@ jobs:
 
           # Generate GHA matrix from local templates
           MATRIX=$(warpgate templates list --source local --format gha-matrix --quiet)
-          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          {
+            echo "matrix<<EOF"
+            echo "$MATRIX"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
           # Display discovered templates for debugging
           echo "Discovered template matrix:"
