@@ -153,6 +153,19 @@ jobs:
           sudo chown -R $(id -u):$(id -g) /run/lock
           sudo chmod -R 755 /run/lock
 
+          # Configure storage for rootless mode
+          mkdir -p ~/.config/containers
+          tee ~/.config/containers/storage.conf > /dev/null <<'EOF'
+          [storage]
+          driver = "vfs"
+          graphroot = "/home/runner/.local/share/containers/storage"
+          runroot = "/run/user/1001/containers"
+
+          [storage.options]
+          ignore_chown_errors = "true"
+          force_mask = "0000"
+          EOF
+
           # Configure containers.conf to disable networking
           sudo mkdir -p /etc/containers
           sudo tee /etc/containers/containers.conf > /dev/null <<'EOF'
