@@ -19,6 +19,12 @@ on:
       - 'templates/**'
       - '.github/workflows/build-and-push-templates.yaml'
   workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled'
+        required: false
+        default: false
 
 # Required for OIDC and pushing to GHCR
 permissions:
@@ -231,55 +237,42 @@ jobs:
           echo "Runtime configuration:"
           cat /etc/containers/containers.conf
 
-      - name: Build Multi-Arch Images
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+
+      - name: Build and Push Multi-Arch Images
         run: |
           # Run warpgate natively with sudo (Linux native execution)
           cd "$GITHUB_WORKSPACE/templates/${{ matrix.template.name }}"
 
           export PROVISION_REPO_PATH="$HOME/${{ matrix.template.provision_repo_path }}"
 
+          # Build and push individual architecture images
           sudo -E warpgate build warpgate.yaml \
-            --arch amd64,arm64
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            --arch amd64,arm64 \
+            --push \
+            --registry ghcr.io/${{ matrix.template.namespace }}
 
-      - name: Tag and Push Multi-Arch Images
-        run: |
-          set -e
-
-          IMAGE_NAME="${{ matrix.template.name }}"
-          REGISTRY="ghcr.io/${{ matrix.template.namespace }}"
-
-          # List all built images to understand warpgate's tagging
-          echo "=== Available images ==="
-          sudo buildah images
-
-          # Tag and push amd64 image
-          echo "=== Tagging and pushing amd64 ==="
-          sudo buildah tag localhost/${IMAGE_NAME}:latest-amd64 ${REGISTRY}/${IMAGE_NAME}:latest-amd64
-          sudo buildah push ${REGISTRY}/${IMAGE_NAME}:latest-amd64
-
-          # Tag and push arm64 image
-          echo "=== Tagging and pushing arm64 ==="
-          sudo buildah tag localhost/${IMAGE_NAME}:latest-arm64 ${REGISTRY}/${IMAGE_NAME}:latest-arm64
-          sudo buildah push ${REGISTRY}/${IMAGE_NAME}:latest-arm64
-
-          # Create and push multi-arch manifest
-          echo "=== Creating multi-arch manifest ==="
-          sudo buildah manifest create ${REGISTRY}/${IMAGE_NAME}:latest
-          sudo buildah manifest add ${REGISTRY}/${IMAGE_NAME}:latest ${REGISTRY}/${IMAGE_NAME}:latest-amd64
-          sudo buildah manifest add ${REGISTRY}/${IMAGE_NAME}:latest ${REGISTRY}/${IMAGE_NAME}:latest-arm64
-
-          echo "=== Pushing manifest ==="
-          sudo buildah manifest push --all ${REGISTRY}/${IMAGE_NAME}:latest docker://${REGISTRY}/${IMAGE_NAME}:latest
-
-          echo "=== Multi-arch push complete ==="
+          # Create and push multi-arch manifest using warpgate
+          sudo -E warpgate manifests create \
+            --name ${{ matrix.template.name }} \
+            --registry ghcr.io/${{ matrix.template.namespace }} \
+            --tag latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify Multi-Arch Manifest
         run: |
           docker buildx imagetools inspect ghcr.io/${{ matrix.template.namespace }}/${{ matrix.template.name }}:latest
+
+      - name: Setup tmate session on failure
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+        if: ${{ failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
 
   build-summary:
     name: Build Summary
