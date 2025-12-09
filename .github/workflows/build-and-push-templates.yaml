@@ -63,8 +63,23 @@ jobs:
         run: |
           which go
           go version
+          GOROOT_BIN="$(go env GOROOT)/bin"
           GOPATH_BIN="$(go env GOPATH)/bin"
-          echo "$GOPATH_BIN" >> "$GITHUB_PATH"
+          {
+            echo "$GOROOT_BIN"
+            echo "$GOPATH_BIN"
+          } >> "$GITHUB_PATH"
+
+          # Set XDG directories
+          USER_ID="$(id -u)"
+          export XDG_RUNTIME_DIR="/run/user/$USER_ID"
+          export XDG_CONFIG_HOME=/root/.config
+          export XDG_DATA_HOME=/root/.local/share
+          {
+            echo "XDG_RUNTIME_DIR=/run/user/$USER_ID"
+            echo "XDG_CONFIG_HOME=/root/.config"
+            echo "XDG_DATA_HOME=/root/.local/share"
+          } >> "$GITHUB_ENV"
 
       - name: Install Task
         run: |
@@ -78,10 +93,27 @@ jobs:
 
       - name: Install Warpgate
         run: |
+          # Verify Go is in PATH before building
+          echo "Current PATH: $PATH"
+          which go
+          go version
+          GOPATH_VAL="$(go env GOPATH)"
+          GOROOT_VAL="$(go env GOROOT)"
+          echo "GOPATH: $GOPATH_VAL"
+          echo "GOROOT: $GOROOT_VAL"
+
+          # Clone and build warpgate
           git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
           cd /tmp/warpgate
+
+          # Build with explicit PATH including Go binaries
+          GO_PATHS="$GOROOT_VAL/bin:$GOPATH_VAL/bin"
+          export PATH="$GO_PATHS:$PATH"
           task -y go:build
+
+          # Install and verify
           sudo cp warpgate /usr/local/bin/warpgate
+          which warpgate
           warpgate version
 
       - name: Discover templates
@@ -138,8 +170,23 @@ jobs:
         run: |
           which go
           go version
+          GOROOT_BIN="$(go env GOROOT)/bin"
           GOPATH_BIN="$(go env GOPATH)/bin"
-          echo "$GOPATH_BIN" >> "$GITHUB_PATH"
+          {
+            echo "$GOROOT_BIN"
+            echo "$GOPATH_BIN"
+          } >> "$GITHUB_PATH"
+
+          # Set XDG directories
+          USER_ID="$(id -u)"
+          export XDG_RUNTIME_DIR="/run/user/$USER_ID"
+          export XDG_CONFIG_HOME=/root/.config
+          export XDG_DATA_HOME=/root/.local/share
+          {
+            echo "XDG_RUNTIME_DIR=/run/user/$USER_ID"
+            echo "XDG_CONFIG_HOME=/root/.config"
+            echo "XDG_DATA_HOME=/root/.local/share"
+          } >> "$GITHUB_ENV"
 
       - name: Install Task
         run: |
@@ -222,10 +269,27 @@ jobs:
 
       - name: Install Warpgate
         run: |
+          # Verify Go is in PATH before building
+          echo "Current PATH: $PATH"
+          which go
+          go version
+          GOPATH_VAL="$(go env GOPATH)"
+          GOROOT_VAL="$(go env GOROOT)"
+          echo "GOPATH: $GOPATH_VAL"
+          echo "GOROOT: $GOROOT_VAL"
+
+          # Clone and build warpgate
           git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
           cd /tmp/warpgate
+
+          # Build with explicit PATH including Go binaries
+          GO_PATHS="$GOROOT_VAL/bin:$GOPATH_VAL/bin"
+          export PATH="$GO_PATHS:$PATH"
           task -y go:build
+
+          # Install and verify
           sudo cp warpgate /usr/local/bin/warpgate
+          which warpgate
           warpgate version
 
       - name: Setup tmate session on failure (build - warpgate install)
