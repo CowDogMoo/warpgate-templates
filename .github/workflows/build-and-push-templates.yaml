@@ -77,6 +77,12 @@ jobs:
           sudo cp warpgate /usr/local/bin/warpgate
           warpgate version
 
+      - name: Setup tmate session (discover)
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+
       - name: Discover templates
         id: discover
         run: |
@@ -88,7 +94,8 @@ jobs:
           MATRIX=$(warpgate templates list --source local --format gha-matrix --quiet)
 
           # Add provision_repo field to each template based on which repo they need
-          MATRIX=$(echo "$MATRIX" | jq '.include |= map(
+          # Also rename 'template' to 'include' for GitHub Actions matrix format
+          MATRIX=$(echo "$MATRIX" | jq '{include: .template | map(
             if .name == "sliver" then
               . + {"provision_repo": "ansible-collection-arsenal", "provision_repo_path": "ansible-collection-arsenal"}
             elif .name == "ttpforge" or .name == "atomic-red-team" or .name == "asdf" or .name == "attack-box" then
@@ -96,7 +103,7 @@ jobs:
             else
               .
             end
-          )')
+          )}')
 
           {
             echo "matrix<<EOF"
@@ -107,6 +114,12 @@ jobs:
           # Display discovered templates for debugging
           echo "Discovered template matrix:"
           echo "$MATRIX" | jq .
+
+      - name: Setup tmate session on failure (discover)
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+        if: ${{ failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
 
   build-and-push:
     name: Build ${{ matrix.template.name }}
