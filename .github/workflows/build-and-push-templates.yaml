@@ -92,43 +92,23 @@ jobs:
 
       - name: Install Warpgate
         run: |
-          set -x  # Enable debug output
+          set -x
 
-          # Set up Go environment using dynamic paths from go env
-          GOROOT="$(go env GOROOT)"
-          GOPATH="$(go env GOPATH)"
-          export GOROOT GOPATH
-          export PATH="$GOROOT/bin:$GOPATH/bin:$PATH"
-
-          # Verify Go is in PATH before building
-          echo "=== Verifying Go installation ==="
-          echo "Current PATH: $PATH"
-          which go || { echo "ERROR: which go failed"; exit 1; }
-          go version || { echo "ERROR: go version failed"; exit 1; }
-          echo "GOPATH: $GOPATH"
-          echo "GOROOT: $GOROOT"
+          # Verify Go is accessible (setup-go already configured everything)
+          which go
+          go version
 
           # Clone and build warpgate
-          echo "=== Cloning warpgate ==="
-          git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate || { echo "ERROR: git clone failed"; exit 1; }
-
-          echo "=== Changing to warpgate directory ==="
-          cd /tmp/warpgate || { echo "ERROR: cd failed"; exit 1; }
+          git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
+          cd /tmp/warpgate
 
           # Build warpgate
-          echo "=== Building warpgate ==="
-          task -y go:build || { echo "ERROR: task go:build failed"; exit 1; }
-
-          echo "=== Checking if warpgate binary exists ==="
-          ls -la warpgate || { echo "ERROR: warpgate binary not found"; exit 1; }
+          task -y go:build
 
           # Install and verify
-          echo "=== Installing warpgate ==="
-          sudo cp warpgate /usr/local/bin/warpgate || { echo "ERROR: cp failed"; exit 1; }
-          which warpgate || { echo "ERROR: which warpgate failed"; exit 1; }
-          warpgate version || { echo "ERROR: warpgate version failed"; exit 1; }
-
-          echo "=== SUCCESS: Warpgate installed ==="
+          sudo cp warpgate /usr/local/bin/warpgate
+          which warpgate
+          warpgate version
 
       - name: Discover templates
         id: discover
@@ -295,43 +275,23 @@ jobs:
 
       - name: Install Warpgate
         run: |
-          set -x  # Enable debug output
+          set -x
 
-          # Set up Go environment using dynamic paths from go env
-          GOROOT="$(go env GOROOT)"
-          GOPATH="$(go env GOPATH)"
-          export GOROOT GOPATH
-          export PATH="$GOROOT/bin:$GOPATH/bin:$PATH"
-
-          # Verify Go is in PATH before building
-          echo "=== Verifying Go installation ==="
-          echo "Current PATH: $PATH"
-          which go || { echo "ERROR: which go failed"; exit 1; }
-          go version || { echo "ERROR: go version failed"; exit 1; }
-          echo "GOPATH: $GOPATH"
-          echo "GOROOT: $GOROOT"
+          # Verify Go is accessible (setup-go already configured everything)
+          which go
+          go version
 
           # Clone and build warpgate
-          echo "=== Cloning warpgate ==="
-          git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate || { echo "ERROR: git clone failed"; exit 1; }
-
-          echo "=== Changing to warpgate directory ==="
-          cd /tmp/warpgate || { echo "ERROR: cd failed"; exit 1; }
+          git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
+          cd /tmp/warpgate
 
           # Build warpgate
-          echo "=== Building warpgate ==="
-          task -y go:build || { echo "ERROR: task go:build failed"; exit 1; }
-
-          echo "=== Checking if warpgate binary exists ==="
-          ls -la warpgate || { echo "ERROR: warpgate binary not found"; exit 1; }
+          task -y go:build
 
           # Install and verify
-          echo "=== Installing warpgate ==="
-          sudo cp warpgate /usr/local/bin/warpgate || { echo "ERROR: cp failed"; exit 1; }
-          which warpgate || { echo "ERROR: which warpgate failed"; exit 1; }
-          warpgate version || { echo "ERROR: warpgate version failed"; exit 1; }
-
-          echo "=== SUCCESS: Warpgate installed ==="
+          sudo cp warpgate /usr/local/bin/warpgate
+          which warpgate
+          warpgate version
 
       - name: Install Buildah and Container Tools
         run: |
