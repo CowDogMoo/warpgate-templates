@@ -83,7 +83,7 @@ jobs:
 
       - name: Install Task
         run: |
-          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
+          sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
           task --version
 
       - name: Install System Dependencies
@@ -243,7 +243,7 @@ jobs:
 
       - name: Install Task
         run: |
-          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
+          sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
           task --version
 
       - name: Install System Dependencies
@@ -462,7 +462,7 @@ jobs:
 
       - name: Install Task
         run: |
-          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
+          sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
           task --version
 
       - name: Install System Dependencies
