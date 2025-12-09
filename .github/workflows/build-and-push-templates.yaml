@@ -206,13 +206,30 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgpgme-dev libbtrfs-dev
 
+      - name: Setup tmate session (build - pre-warpgate)
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+
       - name: Install Warpgate
         run: |
+          # Ensure Go is in PATH
+          export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
+          which go
+          go version
+
           git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
           cd /tmp/warpgate
           task -y go:build
           sudo cp warpgate /usr/local/bin/warpgate
           warpgate version
+
+      - name: Setup tmate session on failure (build - warpgate install)
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+        if: ${{ failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
 
       - name: Install Buildah and Container Tools
         run: |
