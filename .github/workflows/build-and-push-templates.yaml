@@ -188,12 +188,11 @@ jobs:
         run: |
           # Configure warpgate to use local templates
           warpgate config init --force
-          warpgate templates add "$GITHUB_WORKSPACE" --source local
+          warpgate templates add "$GITHUB_WORKSPACE"
 
           # Build for multiple architectures and push
           warpgate build \
             --template "${{ matrix.template.name }}" \
-            --source local \
             --arch amd64,arm64 \
             --push \
             --registry ghcr.io/${{ matrix.template.namespace }} \
