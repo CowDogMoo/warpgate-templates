@@ -186,9 +186,9 @@ jobs:
 
       - name: Build and Push Multi-Arch Image
         run: |
-          # Build using local template directory path
+          # Build using warpgate.yaml config file path
           warpgate build \
-            "$GITHUB_WORKSPACE/templates/${{ matrix.template.name }}" \
+            "$GITHUB_WORKSPACE/templates/${{ matrix.template.name }}/warpgate.yaml" \
             --arch amd64,arm64 \
             --push \
             --registry ghcr.io/${{ matrix.template.namespace }} \
