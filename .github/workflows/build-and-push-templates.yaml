@@ -94,9 +94,10 @@ jobs:
         run: |
           set -x  # Enable debug output
 
-          # Set up Go environment explicitly
-          export GOROOT="/opt/hostedtoolcache/go/${{ env.GO_VERSION }}/x64"
-          export GOPATH="$HOME/go"
+          # Set up Go environment using dynamic paths from go env
+          GOROOT="$(go env GOROOT)"
+          GOPATH="$(go env GOPATH)"
+          export GOROOT GOPATH
           export PATH="$GOROOT/bin:$GOPATH/bin:$PATH"
 
           # Verify Go is in PATH before building
@@ -296,9 +297,10 @@ jobs:
         run: |
           set -x  # Enable debug output
 
-          # Set up Go environment explicitly
-          export GOROOT="/opt/hostedtoolcache/go/${{ env.GO_VERSION }}/x64"
-          export GOPATH="$HOME/go"
+          # Set up Go environment using dynamic paths from go env
+          GOROOT="$(go env GOROOT)"
+          GOPATH="$(go env GOPATH)"
+          export GOROOT GOPATH
           export PATH="$GOROOT/bin:$GOPATH/bin:$PATH"
 
           # Verify Go is in PATH before building
