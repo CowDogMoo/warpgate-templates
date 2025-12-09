@@ -54,7 +54,7 @@ jobs:
           go install mvdan.cc/sh/v3/cmd/shfmt@latest
 
           # Add Go bin directory to PATH
-          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       - name: Run pre-commit
         run: pre-commit run --all-files --show-diff-on-failure --color=always
