@@ -401,9 +401,3 @@ jobs:
           else
             echo "✓ All template builds completed successfully"
           fi
-
-      - name: Setup tmate session on failure (build-summary)
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-        if: ${{ failure() && ((github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled) || github.event_name == 'push') }}
