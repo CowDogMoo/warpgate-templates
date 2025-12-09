@@ -19,12 +19,6 @@ on:
       - 'templates/**'
       - '.github/workflows/build-and-push-templates.yaml'
   workflow_dispatch:
-    inputs:
-      debug_enabled:
-        type: boolean
-        description: 'Run the build with tmate debugging enabled'
-        required: false
-        default: false
 
 # Required for OIDC and pushing to GHCR
 permissions:
@@ -98,22 +92,23 @@ jobs:
 
       - name: Install Warpgate
         run: |
+          # Set up Go environment explicitly
+          export GOROOT="/opt/hostedtoolcache/go/${{ env.GO_VERSION }}/x64"
+          export GOPATH="$HOME/go"
+          export PATH="$GOROOT/bin:$GOPATH/bin:$PATH"
+
           # Verify Go is in PATH before building
           echo "Current PATH: $PATH"
           which go
           go version
-          GOPATH_VAL="$(go env GOPATH)"
-          GOROOT_VAL="$(go env GOROOT)"
-          echo "GOPATH: $GOPATH_VAL"
-          echo "GOROOT: $GOROOT_VAL"
+          echo "GOPATH: $GOPATH"
+          echo "GOROOT: $GOROOT"
 
           # Clone and build warpgate
           git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
           cd /tmp/warpgate
 
-          # Build with explicit PATH including Go binaries
-          GO_PATHS="$GOROOT_VAL/bin:$GOPATH_VAL/bin"
-          export PATH="$GO_PATHS:$PATH"
+          # Build warpgate
           task -y go:build
 
           # Install and verify
@@ -270,12 +265,6 @@ jobs:
               --pre
           fi
 
-      - name: Setup tmate session on failure (build - ansible collection)
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-        if: ${{ failure() && ((github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled) || github.event_name == 'push') }}
-
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -290,42 +279,31 @@ jobs:
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
-      - name: Setup tmate session (build - pre-warpgate)
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
-
       - name: Install Warpgate
         run: |
+          # Set up Go environment explicitly
+          export GOROOT="/opt/hostedtoolcache/go/${{ env.GO_VERSION }}/x64"
+          export GOPATH="$HOME/go"
+          export PATH="$GOROOT/bin:$GOPATH/bin:$PATH"
+
           # Verify Go is in PATH before building
           echo "Current PATH: $PATH"
           which go
           go version
-          GOPATH_VAL="$(go env GOPATH)"
-          GOROOT_VAL="$(go env GOROOT)"
-          echo "GOPATH: $GOPATH_VAL"
-          echo "GOROOT: $GOROOT_VAL"
+          echo "GOPATH: $GOPATH"
+          echo "GOROOT: $GOROOT"
 
           # Clone and build warpgate
           git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
           cd /tmp/warpgate
 
-          # Build with explicit PATH including Go binaries
-          GO_PATHS="$GOROOT_VAL/bin:$GOPATH_VAL/bin"
-          export PATH="$GO_PATHS:$PATH"
+          # Build warpgate
           task -y go:build
 
           # Install and verify
           sudo cp warpgate /usr/local/bin/warpgate
           which warpgate
           warpgate version
-
-      - name: Setup tmate session on failure (build - warpgate install)
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-        if: ${{ failure() && ((github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled) || github.event_name == 'push') }}
 
       - name: Install Buildah and Container Tools
         run: |
@@ -365,18 +343,6 @@ jobs:
 
           echo "Runtime configuration:"
           cat /etc/containers/containers.conf
-
-      - name: Setup tmate session on failure (build - container config)
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-        if: ${{ failure() && ((github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled) || github.event_name == 'push') }}
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
 
       - name: Configure Warpgate
         run: |
@@ -422,21 +388,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup tmate session on failure (build - warpgate build)
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-        if: ${{ failure() && ((github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled) || github.event_name == 'push') }}
-
       - name: Verify ${{ matrix.name }} Multi-Arch Manifest
         run: |
           docker buildx imagetools inspect ghcr.io/${{ matrix.namespace }}/${{ matrix.name }}:latest
-
-      - name: Setup tmate session on failure
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-        if: ${{ failure() && ((github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled) || github.event_name == 'push') }}
 
   build-summary:
     name: Build Summary
