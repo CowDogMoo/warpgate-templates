@@ -214,11 +214,6 @@ jobs:
 
       - name: Install Warpgate
         run: |
-          # Ensure Go is in PATH
-          export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
-          which go
-          go version
-
           git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
           cd /tmp/warpgate
           task -y go:build
@@ -273,7 +268,7 @@ jobs:
           limit-access-to-actor: true
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
 
-      - name: Build and Push Multi-Arch Images
+      - name: Build and Push ${{ matrix.template.name }} Multi-Arch Images
         run: |
           # Run warpgate natively with sudo (Linux native execution)
           cd "$GITHUB_WORKSPACE/templates/${{ matrix.template.name }}"
@@ -294,7 +289,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Verify Multi-Arch Manifest
+      - name: Verify ${{ matrix.template.name }} Multi-Arch Manifest
         run: |
           docker buildx imagetools inspect ghcr.io/${{ matrix.template.namespace }}/${{ matrix.template.name }}:latest
 
