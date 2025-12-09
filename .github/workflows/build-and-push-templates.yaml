@@ -134,17 +134,46 @@ jobs:
       - name: Install Ansible
         run: python3 -m pip install ansible
 
+      - name: Clone ansible-collection repositories
+        if: matrix.template.vars != ''
+        run: |
+          mkdir -p "$HOME/CowDogMoo"
+          git clone https://github.com/CowDogMoo/ansible-collection-workstation.git "$HOME/CowDogMoo/ansible-collection-workstation"
+          git clone https://github.com/l50/ansible-collection-arsenal.git "$HOME/ansible-collection-arsenal"
+          git clone https://github.com/l50/ansible-collection-bulwark.git "$HOME/ansible-collection-bulwark"
+
       - name: Install Ansible Collections
         if: matrix.template.vars != ''
         run: |
-          # Clone ansible collections needed for provisioning
-          mkdir -p "$HOME/ansible-collection-arsenal"
-          git clone --depth 1 https://github.com/l50/ansible-collection-arsenal.git "$HOME/ansible-collection-arsenal"
+          # Create the ansible collections directory
+          mkdir -p "$HOME/.ansible/collections"
 
-          # Build and install the collection
+          # Build and install CowDogMoo workstation collection
+          cd "$HOME/CowDogMoo/ansible-collection-workstation"
+          ansible-galaxy collection build --force
+          ansible-galaxy collection install \
+            cowdogmoo-workstation-*.tar.gz \
+            -p "$HOME/.ansible/collections" \
+            --force \
+            --pre
+
+          # Build and install l50 arsenal collection
           cd "$HOME/ansible-collection-arsenal"
           ansible-galaxy collection build --force
-          ansible-galaxy collection install ./*.tar.gz --force
+          ansible-galaxy collection install \
+            l50-arsenal-*.tar.gz \
+            -p "$HOME/.ansible/collections" \
+            --force \
+            --pre
+
+          # Build and install l50 bulwark collection
+          cd "$HOME/ansible-collection-bulwark"
+          ansible-galaxy collection build --force
+          ansible-galaxy collection install \
+            l50-bulwark-*.tar.gz \
+            -p "$HOME/.ansible/collections" \
+            --force \
+            --pre
 
       - name: Configure container runtime
         run: |
