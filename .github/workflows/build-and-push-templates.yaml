@@ -70,15 +70,20 @@ jobs:
             echo "$GOPATH_BIN"
           } >> "$GITHUB_PATH"
 
-          # Set XDG directories
+          # Set XDG directories and ensure they exist
           USER_ID="$(id -u)"
           export XDG_RUNTIME_DIR="/run/user/$USER_ID"
-          export XDG_CONFIG_HOME=/root/.config
-          export XDG_DATA_HOME=/root/.local/share
+          export XDG_CONFIG_HOME="$HOME/.config"
+          export XDG_DATA_HOME="$HOME/.local/share"
+
+          # Create directories if they don't exist
+          mkdir -p "$XDG_CONFIG_HOME"
+          mkdir -p "$XDG_DATA_HOME"
+
           {
             echo "XDG_RUNTIME_DIR=/run/user/$USER_ID"
-            echo "XDG_CONFIG_HOME=/root/.config"
-            echo "XDG_DATA_HOME=/root/.local/share"
+            echo "XDG_CONFIG_HOME=$HOME/.config"
+            echo "XDG_DATA_HOME=$HOME/.local/share"
           } >> "$GITHUB_ENV"
 
       - name: Install Task
@@ -177,15 +182,20 @@ jobs:
             echo "$GOPATH_BIN"
           } >> "$GITHUB_PATH"
 
-          # Set XDG directories
+          # Set XDG directories and ensure they exist
           USER_ID="$(id -u)"
           export XDG_RUNTIME_DIR="/run/user/$USER_ID"
-          export XDG_CONFIG_HOME=/root/.config
-          export XDG_DATA_HOME=/root/.local/share
+          export XDG_CONFIG_HOME="$HOME/.config"
+          export XDG_DATA_HOME="$HOME/.local/share"
+
+          # Create directories if they don't exist
+          mkdir -p "$XDG_CONFIG_HOME"
+          mkdir -p "$XDG_DATA_HOME"
+
           {
             echo "XDG_RUNTIME_DIR=/run/user/$USER_ID"
-            echo "XDG_CONFIG_HOME=/root/.config"
-            echo "XDG_DATA_HOME=/root/.local/share"
+            echo "XDG_CONFIG_HOME=$HOME/.config"
+            echo "XDG_DATA_HOME=$HOME/.local/share"
           } >> "$GITHUB_ENV"
 
       - name: Install Task
