@@ -113,19 +113,6 @@ jobs:
           sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
           task --version
 
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgpgme-dev libbtrfs-dev
-
-      - name: Install Warpgate
-        run: |
-          git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
-          cd /tmp/warpgate
-          task -y go:build
-          sudo cp warpgate /usr/local/bin/warpgate
-          warpgate version
-
       - name: Setup Python
         uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
@@ -175,50 +162,6 @@ jobs:
             --force \
             --pre
 
-      - name: Configure container runtime
-        run: |
-          # Create and configure lock directory
-          sudo mkdir -p /run/lock
-          sudo chown -R "$(id -u):$(id -g)" /run/lock
-          sudo chmod -R 755 /run/lock
-
-          # Configure storage for rootless mode
-          mkdir -p ~/.config/containers
-          tee ~/.config/containers/storage.conf > /dev/null <<'EOF'
-          [storage]
-          driver = "vfs"
-          graphroot = "/home/runner/.local/share/containers/storage"
-          runroot = "/run/user/1001/containers"
-
-          [storage.options]
-          ignore_chown_errors = "true"
-          EOF
-
-          # Configure containers.conf to disable networking
-          sudo mkdir -p /etc/containers
-          sudo tee /etc/containers/containers.conf > /dev/null <<'EOF'
-          [engine]
-          runtime = "runc"
-
-          [engine.runtimes]
-          runc = [
-            "/usr/bin/runc"
-          ]
-
-          [network]
-          network_backend = ""
-          EOF
-
-          # Configure warpgate for Linux builds
-          mkdir -p ~/.config/warpgate
-          tee ~/.config/warpgate/config.yaml > /dev/null <<'EOF'
-          storage:
-            driver: vfs
-
-          container:
-            runtime: runc
-          EOF
-
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -233,16 +176,29 @@ jobs:
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
-      - name: Build and Push Multi-Arch Image
-        env:
-          ARSENAL_REPO_PATH: /home/runner/ansible-collection-arsenal
-          WORKSTATION_REPO_PATH: /home/runner/CowDogMoo/ansible-collection-workstation
-          PROVISION_REPO_PATH: /home/runner/CowDogMoo/ansible-collection-workstation
-          BULWARK_REPO_PATH: /home/runner/ansible-collection-bulwark
+      - name: Pull warpgate Docker image
         run: |
-          # Build using warpgate.yaml config file path
-          warpgate build \
-            "$GITHUB_WORKSPACE/templates/${{ matrix.template.name }}/warpgate.yaml" \
+          docker pull ghcr.io/cowdogmoo/warpgate:latest
+
+      - name: Build and Push Multi-Arch Image
+        run: |
+          # Run warpgate in Docker container with privileged mode (like local script)
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$GITHUB_WORKSPACE/templates/${{ matrix.template.name }}/warpgate.yaml:/workspace/warpgate.yaml:ro" \
+            -v "$HOME/ansible-collection-arsenal:/provision/arsenal:ro" \
+            -v "$HOME/CowDogMoo/ansible-collection-workstation:/provision/workstation:ro" \
+            -v "$HOME/ansible-collection-bulwark:/provision/bulwark:ro" \
+            -e ARSENAL_REPO_PATH=/provision/arsenal \
+            -e WORKSTATION_REPO_PATH=/provision/workstation \
+            -e PROVISION_REPO_PATH=/provision/workstation \
+            -e BULWARK_REPO_PATH=/provision/bulwark \
+            -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+            --privileged \
+            --security-opt seccomp=unconfined \
+            --security-opt apparmor=unconfined \
+            ghcr.io/cowdogmoo/warpgate:latest \
+            build /workspace/warpgate.yaml \
             --arch amd64,arm64 \
             --push \
             --registry ghcr.io/${{ matrix.template.namespace }}
