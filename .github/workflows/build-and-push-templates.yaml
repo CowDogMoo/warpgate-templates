@@ -77,12 +77,6 @@ jobs:
           sudo cp warpgate /usr/local/bin/warpgate
           warpgate version
 
-      - name: Setup tmate session (discover)
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
-
       - name: Discover templates
         id: discover
         run: |
@@ -114,12 +108,6 @@ jobs:
           # Display discovered templates for debugging
           echo "Discovered template matrix:"
           echo "$MATRIX" | jq .
-
-      - name: Setup tmate session on failure (discover)
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-        if: ${{ failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
 
   build-and-push:
     name: Build ${{ matrix.template.name }}
@@ -192,6 +180,12 @@ jobs:
               --pre
           fi
 
+      - name: Setup tmate session on failure (build - ansible collection)
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+        if: ${{ failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -262,6 +256,12 @@ jobs:
           echo "Runtime configuration:"
           cat /etc/containers/containers.conf
 
+      - name: Setup tmate session on failure (build - container config)
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+        if: ${{ failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         with:
@@ -288,6 +288,12 @@ jobs:
             --tag latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup tmate session on failure (build - warpgate build)
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+        if: ${{ failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
 
       - name: Verify ${{ matrix.template.name }} Multi-Arch Manifest
         run: |
@@ -317,3 +323,9 @@ jobs:
           else
             echo "✓ All template builds completed successfully"
           fi
+
+      - name: Setup tmate session on failure (build-summary)
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+        if: ${{ failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
