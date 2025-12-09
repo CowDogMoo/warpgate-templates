@@ -154,9 +154,9 @@ jobs:
               } |
               . as $arch_config |
               $template |
-              if .name == "sliver" then
+              if .name == "sliver" or .name == "ttpforge" or .name == "atomic-red-team" or .name == "attack-box" then
                 . + {"provision_repo": "ansible-collection-arsenal", "provision_repo_path": "ansible-collection-arsenal"}
-              elif .name == "ttpforge" or .name == "atomic-red-team" or .name == "asdf" or .name == "attack-box" then
+              elif .name == "asdf" then
                 . + {"provision_repo": "ansible-collection-workstation", "provision_repo_path": "CowDogMoo/ansible-collection-workstation"}
               else
                 .
