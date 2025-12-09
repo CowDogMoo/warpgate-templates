@@ -6,6 +6,9 @@ building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs**
 up tools, and runs Ansible roles to configure the system for robust TTP
 simulation and testing workflows.
 
+📚 **For comprehensive deployment guide, troubleshooting, and usage
+examples, see [USAGE.md](USAGE.md)**
+
 ---
 
 ## Requirements
