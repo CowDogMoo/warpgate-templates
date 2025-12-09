@@ -46,6 +46,11 @@ jobs:
           sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
           task --version
 
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgpgme-dev libbtrfs-dev
+
       - name: Install Warpgate
         run: |
           git clone --branch feat/go-rewrite https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
