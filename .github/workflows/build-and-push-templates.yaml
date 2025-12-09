@@ -148,21 +148,24 @@ jobs:
 
       - name: Configure container runtime
         run: |
-          # Create lock directory with proper permissions
+          # Create and configure lock directory
           sudo mkdir -p /run/lock
-          sudo chmod 777 /run/lock
+          sudo chown -R $(id -u):$(id -g) /run/lock
+          sudo chmod -R 755 /run/lock
 
-          # Configure containers.conf for runc runtime
+          # Configure containers.conf to disable networking
           sudo mkdir -p /etc/containers
           sudo tee /etc/containers/containers.conf > /dev/null <<'EOF'
           [engine]
           runtime = "runc"
-          network_backend = ""
 
           [engine.runtimes]
           runc = [
             "/usr/bin/runc"
           ]
+
+          [network]
+          network_backend = ""
           EOF
 
           # Configure warpgate for Linux builds
