@@ -2,7 +2,7 @@
 metadata:
     name: ttpforge
     version: 1.0.0
-    description: This repository contains Packer templates to build **TTPForge**
+    description: This repository contains Packer templates to build **TTPForge** for adversary emulation
     author: Jayson Grace <jayson.e.grace@gmail.com>
     license: MIT
     tags: []
@@ -11,7 +11,7 @@ metadata:
 name: ttpforge
 version: latest
 base:
-    image: ubuntu:jammy
+    image: ubuntu:25.04
     pull: true
     privileged: true
     volumes:
@@ -26,20 +26,20 @@ base:
         DEBIAN_FRONTEND: noninteractive
         TZ: UTC
     changes:
+        - ENTRYPOINT ${ENTRYPOINT}
         - ENV PATH=/opt/ttpforge:$PATH
         - ENV DEBIAN_FRONTEND=noninteractive
         - ENV TZ=UTC
-        - USER root
-        - WORKDIR /root/ttpforge
 provisioners:
     - type: shell
       only:
         - docker.arm64
         - docker.amd64
       inline:
-        - echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
         - apt-get update
-        - apt-get install -y --no-install-recommends python3 python3-pip sudo
+        - apt-get install -y --no-install-recommends python3 python3-pip git
+        - apt-get install -y sudo
+        - apt-get install -y --no-install-recommends ansible || dpkg --configure -a && apt-get install -y --no-install-recommends ansible
         - rm -rf /var/lib/apt/lists/*
     - type: ansible
       only:
@@ -53,23 +53,27 @@ provisioners:
       ansible_env_vars:
         - PACKER_BUILD_NAME={{ build_name }}
         - ANSIBLE_REMOTE_TMP=/tmp/ansible-tmp-$USER
-        - "ANSIBLE_COLLECTIONS_PATH=$HOME/.ansible/collections:${PROVISION_REPO_PATH}"
+        - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     - type: shell
       only:
         - docker.arm64
         - docker.amd64
       inline:
-        - rm -rf /home/root/.ansible || true
-        - rm -rf /tmp/ansible* || true
-        - rm -rf /tmp/packer* || true
-        - sync
-        - rm -f /home/root/.bash_history || true
-        - rm -f /home/root/.wget-hsts || true
-        - history -c 2>/dev/null || true
-        - apt-get clean || true
-        - rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* || true
-        - exit 0
+        - /tmp/post_ansible_cleanup.sh
+    - type: shell
+      only:
+        - docker.arm64
+        - docker.amd64
+      inline:
+        - echo "Build completed successfully"
+      changes:
+        - USER root
+        - WORKDIR /root/ttpforge
 post_processors:
+    - type: docker-tag
+      repository: ttpforge
+      tags:
+        - latest
     - type: manifest
       output: manifest.json
       strip_path: true

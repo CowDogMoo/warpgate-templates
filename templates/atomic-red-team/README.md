@@ -3,8 +3,11 @@
 This template builds **Atomic Red Team** images using Warp Gate. It supports
 building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs**
 (Ubuntu-based EC2 images). The build provisions all required packages, sets
-up tools, and runs Ansible roles to configure the system for security testing
-and adversary emulation using Atomic Red Team's library of attack techniques.
+up tools, and runs Ansible roles to configure the system for security control
+validation and adversary emulation using Atomic Red Team's library of attack techniques.
+
+📚 **For comprehensive deployment guide, troubleshooting, and usage
+examples, see [USAGE.md](USAGE.md)**
 
 ---
 
@@ -13,7 +16,8 @@ and adversary emulation using Atomic Red Team's library of attack techniques.
 - [Warp Gate](https://github.com/l50/warpgate) installed and configured
 - Docker (for building Docker images)
 - AWS credentials with permissions to create AMIs (for AMI builds)
-- Provisioning repository with the `PROVISION_REPO_PATH` environment variable set
+- Provisioning repository (ansible-collection-arsenal) with the
+  `PROVISION_REPO_PATH` environment variable set
 - Required Packer plugins (installed automatically via `warpgate init`):
   - `amazon`
   - `docker`
@@ -26,13 +30,13 @@ and adversary emulation using Atomic Red Team's library of attack techniques.
 The template configuration is managed in `warpgate.yaml`. Key settings include:
 
 - `name`: Template name (`atomic-red-team`)
-- `base.image`: Base Docker image (Ubuntu Jammy 22.04)
+- `base.image`: Base Docker image (Ubuntu 25.04)
 - `provisioners`: Shell and Ansible provisioners for setup
 - `targets`: Defines build targets (container images and AMIs)
 
 Environment variables required:
 
-- `PROVISION_REPO_PATH`: Path to your provisioning repository
+- `PROVISION_REPO_PATH`: Path to your ansible-collection-arsenal repository
 
 ---
 
@@ -130,16 +134,5 @@ To customize the build, edit the `warpgate.yaml` file:
 - Add or remove provisioning steps in the `provisioners` section
 - Adjust `targets` to change build platforms or AMI settings
 - Update environment variables in provisioners to change Ansible behavior
-- Modify the `ENTRYPOINT` environment variable to customize container startup behavior
 
 For more information on Warp Gate template configuration, see the [Warp Gate documentation](https://github.com/l50/warpgate).
-
----
-
-## About Atomic Red Team
-
-Atomic Red Team is a library of simple, focused tests mapped to the MITRE
-ATT&CK framework. It provides security teams with a way to test their defenses
-against specific adversary techniques in a controlled manner. For more
-information, visit the
-[Atomic Red Team GitHub repository](https://github.com/redcanaryco/atomic-red-team).

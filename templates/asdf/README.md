@@ -1,10 +1,13 @@
 # asdf Version Manager Warp Gate Template
 
-This template builds **asdf version manager** images using Warp Gate. It
-supports building both **Docker images** (for `amd64` and `arm64`) and AWS
-**AMIs** (Ubuntu-based EC2 images). The build provisions a minimal container
-image with asdf installed, enabling easy management of multiple runtime
-versions for various programming languages and tools.
+This template builds **asdf version manager** images using Warp Gate. It supports
+building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs**
+(Ubuntu-based EC2 images). The build provisions all required packages, sets
+up tools, and runs Ansible roles to configure the system for managing multiple
+runtime versions across various programming languages and tools.
+
+📚 **For comprehensive deployment guide, troubleshooting, and usage
+examples, see [USAGE.md](USAGE.md)**
 
 ---
 
@@ -13,7 +16,8 @@ versions for various programming languages and tools.
 - [Warp Gate](https://github.com/l50/warpgate) installed and configured
 - Docker (for building Docker images)
 - AWS credentials with permissions to create AMIs (for AMI builds)
-- Provisioning repository with the `PROVISION_REPO_PATH` environment variable set
+- Provisioning repository (ansible-collection-arsenal) with the
+  `PROVISION_REPO_PATH` environment variable set
 - Required Packer plugins (installed automatically via `warpgate init`):
   - `amazon`
   - `docker`
@@ -26,13 +30,13 @@ versions for various programming languages and tools.
 The template configuration is managed in `warpgate.yaml`. Key settings include:
 
 - `name`: Template name (`asdf`)
-- `base.image`: Base Docker image (Ubuntu 22.04)
+- `base.image`: Base Docker image (Ubuntu 25.04)
 - `provisioners`: Shell and Ansible provisioners for setup
 - `targets`: Defines build targets (container images and AMIs)
 
 Environment variables required:
 
-- `PROVISION_REPO_PATH`: Path to your provisioning repository
+- `PROVISION_REPO_PATH`: Path to your ansible-collection-arsenal repository
 
 ---
 
@@ -50,7 +54,7 @@ warpgate init asdf
 **Build Docker images:**
 
 ```bash
-export PROVISION_REPO_PATH="${HOME}/ansible-collections"
+export PROVISION_REPO_PATH="${HOME}/ansible-collection-arsenal"
 warpgate build asdf --only 'docker.*'
 ```
 
@@ -63,7 +67,7 @@ After the build, multi-arch asdf Docker images will be available locally as `asd
 To build an AWS AMI (Ubuntu-based, via `amazon-ebs`):
 
 ```bash
-export PROVISION_REPO_PATH="${HOME}/ansible-collections"
+export PROVISION_REPO_PATH="${HOME}/ansible-collection-arsenal"
 warpgate build asdf --only 'amazon-ebs.*'
 ```
 
@@ -86,8 +90,6 @@ echo $GITHUB_TOKEN | docker login ghcr.io -u YOUR_USERNAME --password-stdin
 # Push the image
 docker push ghcr.io/YOUR_NAMESPACE/asdf:latest
 ```
-
-The template includes a post-processor that automatically tags images as `ghcr.io/cowdogmoo/asdf`.
 
 ---
 
@@ -113,43 +115,12 @@ warpgate validate asdf
   - Default instance type: `t3.micro`
   - Default volume size: 50GB
 - **Docker build:**
-  - Multi-arch (`amd64` + `arm64`) suitable for various development
-    workflows.
-  - Images are ideal for CI/CD pipelines, local development, or as base
-    images for other projects.
-  - Default user: `asdf` (non-root user with sudo access)
+  - Multi-arch (`amd64` + `arm64`) and privileged for full testbed support.
+  - Images are suitable for CI, local testing, or deployment in a Kubernetes cluster.
+  - Default user: `asdf`
   - Working directory: `/workspace`
-  - Default shell: `/bin/bash`
 - The asdf version manager is installed in `/home/asdf/.asdf` and added to the PATH.
-- Environment variables configured:
-  - `ASDF_DIR=/home/asdf/.asdf`
-  - `ASDF_DATA_DIR=/home/asdf/.asdf`
-  - `PATH` includes asdf shims and bin directories
-- The build includes cleanup steps to remove temporary files and Ansible
-  artifacts via `/tmp/post_ansible_cleanup.sh`.
-
----
-
-## Using asdf in the Container
-
-Once inside the container, you can use asdf to manage tool versions:
-
-```bash
-# List all available plugins
-asdf plugin list all
-
-# Add a plugin (e.g., Node.js)
-asdf plugin add nodejs
-
-# Install a specific version
-asdf install nodejs 20.10.0
-
-# Set global version
-asdf global nodejs 20.10.0
-
-# Verify installation
-node --version
-```
+- The build includes cleanup steps to remove temporary files and Ansible artifacts.
 
 ---
 
@@ -161,16 +132,5 @@ To customize the build, edit the `warpgate.yaml` file:
 - Add or remove provisioning steps in the `provisioners` section
 - Adjust `targets` to change build platforms or AMI settings
 - Update environment variables in provisioners to change Ansible behavior
-- Modify user settings to change the default user from `asdf` to another username
 
 For more information on Warp Gate template configuration, see the [Warp Gate documentation](https://github.com/l50/warpgate).
-
----
-
-## About asdf
-
-asdf is a CLI tool that manages multiple runtime versions with a single CLI
-tool. It provides a unified interface for version management across many
-languages and tools, eliminating the need for language-specific version
-managers. For more information, visit the
-[asdf website](https://asdf-vm.com/).

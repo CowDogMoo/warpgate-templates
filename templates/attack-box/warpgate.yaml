@@ -2,7 +2,7 @@
 metadata:
     name: attack-box
     version: 1.0.0
-    description: This repository contains Packer templates to build **Attack-Box**
+    description: This repository contains Packer templates to build **Attack-Box** for offensive security testing
     author: Jayson Grace <jayson.e.grace@gmail.com>
     license: MIT
     tags: []
@@ -29,17 +29,17 @@ base:
         - ENTRYPOINT ${ENTRYPOINT}
         - ENV DEBIAN_FRONTEND=noninteractive
         - ENV TZ=UTC
-        - USER root
-        - WORKDIR /root
 provisioners:
     - type: shell
       only:
         - docker.arm64
         - docker.amd64
       inline:
-        - echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
         - apt-get update
-        - apt-get install -y python3 python3-pip sudo
+        - apt-get install -y --no-install-recommends python3 python3-pip git
+        - apt-get install -y sudo
+        - apt-get install -y --no-install-recommends ansible || dpkg --configure -a && apt-get install -y --no-install-recommends ansible
+        - rm -rf /var/lib/apt/lists/*
     - type: ansible
       only:
         - docker.arm64
@@ -50,14 +50,28 @@ provisioners:
         ansible_shell_executable: /bin/bash
       ansible_env_vars:
         - PACKER_BUILD_NAME={{ build_name }}
+        - ANSIBLE_REMOTE_TMP=/tmp/ansible-tmp-$USER
+        - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     - type: shell
       only:
         - docker.arm64
         - docker.amd64
       inline:
-        - apt-get clean
-        - rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+        - /tmp/post_ansible_cleanup.sh
+    - type: shell
+      only:
+        - docker.arm64
+        - docker.amd64
+      inline:
+        - echo "Build completed successfully"
+      changes:
+        - USER root
+        - WORKDIR /root
 post_processors:
+    - type: docker-tag
+      repository: attack-box
+      tags:
+        - latest
     - type: manifest
       output: manifest.json
       strip_path: true

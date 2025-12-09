@@ -6,6 +6,9 @@ building both **Docker images** (for `amd64` and `arm64`) and AWS **AMIs**
 up tools, and runs Ansible roles to configure the system for TTP (Tactics,
 Techniques, and Procedures) execution and adversary emulation workflows.
 
+📚 **For comprehensive deployment guide, troubleshooting, and usage
+examples, see [USAGE.md](USAGE.md)**
+
 ---
 
 ## Requirements
@@ -13,7 +16,8 @@ Techniques, and Procedures) execution and adversary emulation workflows.
 - [Warp Gate](https://github.com/l50/warpgate) installed and configured
 - Docker (for building Docker images)
 - AWS credentials with permissions to create AMIs (for AMI builds)
-- Provisioning repository with the `PROVISION_REPO_PATH` environment variable set
+- Provisioning repository (ansible-collection-arsenal) with the
+  `PROVISION_REPO_PATH` environment variable set
 - Required Packer plugins (installed automatically via `warpgate init`):
   - `amazon`
   - `docker`
@@ -26,13 +30,13 @@ Techniques, and Procedures) execution and adversary emulation workflows.
 The template configuration is managed in `warpgate.yaml`. Key settings include:
 
 - `name`: Template name (`ttpforge`)
-- `base.image`: Base Docker image (Ubuntu Jammy 22.04)
+- `base.image`: Base Docker image (Ubuntu 25.04)
 - `provisioners`: Shell and Ansible provisioners for setup
 - `targets`: Defines build targets (container images and AMIs)
 
 Environment variables required:
 
-- `PROVISION_REPO_PATH`: Path to your provisioning repository
+- `PROVISION_REPO_PATH`: Path to your ansible-collection-arsenal repository
 
 ---
 
