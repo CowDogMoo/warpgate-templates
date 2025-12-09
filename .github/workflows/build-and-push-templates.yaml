@@ -234,14 +234,18 @@ jobs:
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
       - name: Build and Push Multi-Arch Image
+        env:
+          ARSENAL_REPO_PATH: /home/runner/ansible-collection-arsenal
+          WORKSTATION_REPO_PATH: /home/runner/CowDogMoo/ansible-collection-workstation
+          PROVISION_REPO_PATH: /home/runner/CowDogMoo/ansible-collection-workstation
+          BULWARK_REPO_PATH: /home/runner/ansible-collection-bulwark
         run: |
           # Build using warpgate.yaml config file path
           warpgate build \
             "$GITHUB_WORKSPACE/templates/${{ matrix.template.name }}/warpgate.yaml" \
             --arch amd64,arm64 \
             --push \
-            --registry ghcr.io/${{ matrix.template.namespace }} \
-            ${{ matrix.template.vars != '' && format('--var {0}', matrix.template.vars) || '' }}
+            --registry ghcr.io/${{ matrix.template.namespace }}
 
       - name: Verify Multi-Arch Manifest
         run: |
