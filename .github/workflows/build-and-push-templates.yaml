@@ -192,7 +192,7 @@ jobs:
 
           [storage.options]
           ignore_chown_errors = "true"
-          force_mask = 0000
+          force_mask = "0000"
           EOF
 
           # Configure containers.conf to disable networking
