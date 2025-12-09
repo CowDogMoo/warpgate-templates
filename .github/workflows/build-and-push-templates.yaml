@@ -59,6 +59,13 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
 
+      - name: Verify Go Installation and Add to PATH
+        run: |
+          which go
+          go version
+          GOPATH_BIN="$(go env GOPATH)/bin"
+          echo "$GOPATH_BIN" >> "$GITHUB_PATH"
+
       - name: Install Task
         run: |
           sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
@@ -110,7 +117,7 @@ jobs:
           echo "$MATRIX" | jq .
 
   build-and-push:
-    name: Build ${{ matrix.template.name }}
+    name: Build ${{ matrix.name }}
     needs: discover-templates
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
@@ -126,6 +133,13 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
+
+      - name: Verify Go Installation and Add to PATH
+        run: |
+          which go
+          go version
+          GOPATH_BIN="$(go env GOPATH)/bin"
+          echo "$GOPATH_BIN" >> "$GITHUB_PATH"
 
       - name: Install Task
         run: |
@@ -146,23 +160,23 @@ jobs:
         run: python3 -m pip install ansible
 
       - name: Clone ansible-collection repository
-        if: matrix.template.provision_repo != ''
+        if: matrix.provision_repo != ''
         run: |
-          if [ "${{ matrix.template.provision_repo }}" == "ansible-collection-workstation" ]; then
+          if [ "${{ matrix.provision_repo }}" == "ansible-collection-workstation" ]; then
             mkdir -p "$HOME/CowDogMoo"
             git clone https://github.com/CowDogMoo/ansible-collection-workstation.git "$HOME/CowDogMoo/ansible-collection-workstation"
-          elif [ "${{ matrix.template.provision_repo }}" == "ansible-collection-arsenal" ]; then
+          elif [ "${{ matrix.provision_repo }}" == "ansible-collection-arsenal" ]; then
             git clone https://github.com/l50/ansible-collection-arsenal.git "$HOME/ansible-collection-arsenal"
           fi
 
       - name: Install Ansible Collection
-        if: matrix.template.provision_repo != ''
+        if: matrix.provision_repo != ''
         run: |
           # Create the ansible collections directory
           mkdir -p "$HOME/.ansible/collections"
 
           # Build and install the required collection
-          if [ "${{ matrix.template.provision_repo }}" == "ansible-collection-workstation" ]; then
+          if [ "${{ matrix.provision_repo }}" == "ansible-collection-workstation" ]; then
             cd "$HOME/CowDogMoo/ansible-collection-workstation"
             ansible-galaxy collection build --force
             ansible-galaxy collection install \
@@ -170,7 +184,7 @@ jobs:
               -p "$HOME/.ansible/collections" \
               --force \
               --pre
-          elif [ "${{ matrix.template.provision_repo }}" == "ansible-collection-arsenal" ]; then
+          elif [ "${{ matrix.provision_repo }}" == "ansible-collection-arsenal" ]; then
             cd "$HOME/ansible-collection-arsenal"
             ansible-galaxy collection build --force
             ansible-galaxy collection install \
@@ -184,7 +198,7 @@ jobs:
         uses: mxschmitt/action-tmate@v3
         with:
           limit-access-to-actor: true
-        if: ${{ failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+        if: ${{ failure() && ((github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled) || github.event_name == 'push') }}
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -218,7 +232,7 @@ jobs:
         uses: mxschmitt/action-tmate@v3
         with:
           limit-access-to-actor: true
-        if: ${{ failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+        if: ${{ failure() && ((github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled) || github.event_name == 'push') }}
 
       - name: Install Buildah and Container Tools
         run: |
@@ -260,7 +274,7 @@ jobs:
         uses: mxschmitt/action-tmate@v3
         with:
           limit-access-to-actor: true
-        if: ${{ failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+        if: ${{ failure() && ((github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled) || github.event_name == 'push') }}
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -268,23 +282,23 @@ jobs:
           limit-access-to-actor: true
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
 
-      - name: Build and Push ${{ matrix.template.name }} Multi-Arch Images
+      - name: Build and Push ${{ matrix.name }} Multi-Arch Images
         run: |
           # Run warpgate natively with sudo (Linux native execution)
-          cd "$GITHUB_WORKSPACE/templates/${{ matrix.template.name }}"
+          cd "$GITHUB_WORKSPACE/templates/${{ matrix.name }}"
 
-          export PROVISION_REPO_PATH="$HOME/${{ matrix.template.provision_repo_path }}"
+          export PROVISION_REPO_PATH="$HOME/${{ matrix.provision_repo_path }}"
 
           # Build and push individual architecture images
           sudo -E warpgate build warpgate.yaml \
             --arch amd64,arm64 \
             --push \
-            --registry ghcr.io/${{ matrix.template.namespace }}
+            --registry ghcr.io/${{ matrix.namespace }}
 
           # Create and push multi-arch manifest using warpgate
           sudo -E warpgate manifests create \
-            --name ${{ matrix.template.name }} \
-            --registry ghcr.io/${{ matrix.template.namespace }} \
+            --name ${{ matrix.name }} \
+            --registry ghcr.io/${{ matrix.namespace }} \
             --tag latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -293,17 +307,17 @@ jobs:
         uses: mxschmitt/action-tmate@v3
         with:
           limit-access-to-actor: true
-        if: ${{ failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+        if: ${{ failure() && ((github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled) || github.event_name == 'push') }}
 
-      - name: Verify ${{ matrix.template.name }} Multi-Arch Manifest
+      - name: Verify ${{ matrix.name }} Multi-Arch Manifest
         run: |
-          docker buildx imagetools inspect ghcr.io/${{ matrix.template.namespace }}/${{ matrix.template.name }}:latest
+          docker buildx imagetools inspect ghcr.io/${{ matrix.namespace }}/${{ matrix.name }}:latest
 
       - name: Setup tmate session on failure
         uses: mxschmitt/action-tmate@v3
         with:
           limit-access-to-actor: true
-        if: ${{ failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+        if: ${{ failure() && ((github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled) || github.event_name == 'push') }}
 
   build-summary:
     name: Build Summary
@@ -328,4 +342,4 @@ jobs:
         uses: mxschmitt/action-tmate@v3
         with:
           limit-access-to-actor: true
-        if: ${{ failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+        if: ${{ failure() && ((github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled) || github.event_name == 'push') }}
