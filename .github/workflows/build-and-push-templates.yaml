@@ -126,6 +126,25 @@ jobs:
         run: |
           # Add this repo as a local template source
           warpgate config init
+
+          # Configure warpgate with correct runtime and storage settings
+          cat > ~/.config/warpgate/config.yaml <<EOF
+          storage:
+              driver: vfs
+
+          container:
+              defaultbaseimage: ubuntu
+              defaultbaseversion: latest
+              defaultplatform: linux/amd64
+              defaultplatforms:
+                  - linux/amd64
+                  - linux/arm64
+              runtime: /usr/bin/runc
+          EOF
+
+          echo "Warpgate configuration:"
+          cat ~/.config/warpgate/config.yaml
+
           warpgate templates add "$GITHUB_WORKSPACE"
 
           # Generate GHA matrix from local templates
@@ -339,6 +358,9 @@ jobs:
           runc = [
             "/usr/bin/runc"
           ]
+
+          [network]
+          network_backend = "netavark"
           EOF
 
           echo "Runtime configuration:"
@@ -355,6 +377,29 @@ jobs:
         with:
           limit-access-to-actor: true
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+
+      - name: Configure Warpgate
+        run: |
+          # Initialize warpgate config
+          warpgate config init
+
+          # Configure warpgate with correct runtime and storage settings
+          cat > ~/.config/warpgate/config.yaml <<EOF
+          storage:
+              driver: vfs
+
+          container:
+              defaultbaseimage: ubuntu
+              defaultbaseversion: latest
+              defaultplatform: linux/amd64
+              defaultplatforms:
+                  - linux/amd64
+                  - linux/arm64
+              runtime: /usr/bin/runc
+          EOF
+
+          echo "Warpgate configuration:"
+          cat ~/.config/warpgate/config.yaml
 
       - name: Build and Push ${{ matrix.name }} Multi-Arch Images
         run: |
