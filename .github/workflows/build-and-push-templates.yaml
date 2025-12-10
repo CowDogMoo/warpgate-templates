@@ -375,6 +375,21 @@ jobs:
             --registry ghcr.io/${{ matrix.namespace }} \
             --save-digests \
             --digest-dir "$GITHUB_WORKSPACE"
+
+          # Debug: List digest files in workspace
+          echo "Digest files in $GITHUB_WORKSPACE:"
+          find "$GITHUB_WORKSPACE" -maxdepth 1 -name "digest-*.txt" -type f || echo "No digest files found"
+          echo ""
+          echo "Expected digest file: $GITHUB_WORKSPACE/digest-${{ matrix.name }}-${{ matrix.architecture.arch }}.txt"
+
+          # Check if the specific digest file exists
+          if [ -f "$GITHUB_WORKSPACE/digest-${{ matrix.name }}-${{ matrix.architecture.arch }}.txt" ]; then
+            echo "Digest file found! Contents:"
+            cat "$GITHUB_WORKSPACE/digest-${{ matrix.name }}-${{ matrix.architecture.arch }}.txt"
+          else
+            echo "ERROR: Digest file was not created"
+            exit 1
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.WG_IMAGE_BUILDER_PAT }}
 
