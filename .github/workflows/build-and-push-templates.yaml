@@ -151,7 +151,7 @@ jobs:
               },
               {
                 "arch": "arm64",
-                "runner": "l50-ubuntu-k8s-arm64"
+                "runner": "ubuntu-latest-arm64"
               } |
               . as $arch_config |
               $template |
