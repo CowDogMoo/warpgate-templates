@@ -377,7 +377,8 @@ jobs:
           ]
 
           [network]
-          network_backend = "netavark"
+          # Use "none" for builds - container networking not needed during build
+          network_backend = "none"
           EOF
 
           echo "Runtime configuration:"
