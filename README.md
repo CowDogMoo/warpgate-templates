@@ -1,15 +1,19 @@
-# Warpgate Templates
+# Warp Gate Templates
 
 Official template repository for
-[Warpgate](https://github.com/cowdogmoo/warpgate) - security-focused
-container and AMI images.
+[Warp Gate](https://github.com/cowdogmoo/warpgate) - a robust, automatable
+engine for building security labs, golden images, and multi-architecture containers.
 
 ## Overview
 
-This repository contains pre-built Warpgate templates for deploying
-security tooling, red team infrastructure, and penetration testing
-environments. All templates support both **container images** (multi-arch:
-amd64/arm64) and **AWS AMIs**.
+Warp Gate is a powerful infrastructure-as-code platform built on modular Packer
+templates and Taskfile-driven workflows. This repository provides pre-built
+templates that spin up rapidly for use in security labs, cyber ranges, DevOps CI,
+and immutable infrastructure deployments.
+
+All templates support both **multi-architecture container images** (amd64/arm64)
+and **AWS AMIs**, enabling consistent environments across development, testing,
+and production.
 
 ## Available Templates
 
@@ -23,8 +27,10 @@ amd64/arm64) and **AWS AMIs**.
 
 ### Prerequisites
 
-- [Warpgate](https://github.com/cowdogmoo/warpgate) CLI tool (`>= 1.0.0`)
-- For container builds: Buildah or Docker
+- [Warp Gate](https://github.com/cowdogmoo/warpgate) CLI tool (`>= 1.0.0`)
+- [Packer](https://www.packer.io/) (`>= 1.9.0`) - underlying build engine
+- [Task](https://taskfile.dev/) - workflow automation (optional but recommended)
+- For container builds: Docker or Podman
 - For AMI builds: AWS account with appropriate permissions
 
 ### Building a Template
@@ -194,11 +200,25 @@ template's README.md.
 - **Discussions**: [GitHub Discussions](https://github.com/cowdogmoo/warpgate-templates/discussions)
 - **Documentation**: [Warpgate Docs](https://github.com/cowdogmoo/warpgate/docs)
 
+## Architecture
+
+Warp Gate leverages:
+
+- **Packer** - Industry-standard tool for creating identical machine images
+  across multiple platforms
+- **Taskfile** - Modern task runner for automating complex build workflows
+- **Modular Templates** - Reusable, composable configurations for rapid
+  deployment
+- **Multi-arch Support** - Native builds for amd64 and arm64 architectures
+
+This architecture enables reproducible, version-controlled infrastructure that
+can be automated in CI/CD pipelines or used locally for development.
+
 ## Related Projects
 
-- [Warpgate](https://github.com/cowdogmoo/warpgate) - The core build tool
+- [Warp Gate](https://github.com/cowdogmoo/warpgate) - The core build engine
 - [ansible-collection-arsenal](https://github.com/l50/ansible-collection-arsenal)
-  \- Ansible roles for security tooling
+  \- Ansible roles for security tooling provisioning
 - [ansible-collection-workstation](https://github.com/CowDogMoo/ansible-collection-workstation)
   \- Ansible roles for workstation setup
 
