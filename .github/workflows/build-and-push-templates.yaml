@@ -141,7 +141,10 @@ jobs:
           # Generate GHA matrix from local templates
           MATRIX=$(warpgate templates list --source local --format gha-matrix --quiet)
 
-          MATRIX=$(echo "$MATRIX" | jq --arg namespace "${GITHUB_REPOSITORY_OWNER}" '{
+          # Convert repository owner to lowercase for Docker compatibility
+          REPO_OWNER_LOWER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+
+          MATRIX=$(echo "$MATRIX" | jq --arg namespace "${REPO_OWNER_LOWER}" '{
             include: [
               .template[] |
               . as $template |
@@ -156,15 +159,14 @@ jobs:
               . as $arch_config |
               $template |
               if .name == "sliver" or .name == "ttpforge" or .name == "atomic-red-team" or .name == "attack-box" then
-                . + {"provision_repo": "ansible-collection-arsenal", "provision_repo_path": "ansible-collection-arsenal"}
+                . + {"provision_repo": "ansible-collection-arsenal", "provision_repo_path": "ansible-collection-arsenal", "namespace": "l50"}
               elif .name == "asdf" then
-                . + {"provision_repo": "ansible-collection-workstation", "provision_repo_path": "CowDogMoo/ansible-collection-workstation"}
+                . + {"provision_repo": "ansible-collection-workstation", "provision_repo_path": "CowDogMoo/ansible-collection-workstation", "namespace": "cowdogmoo"}
               else
-                .
+                . + {"namespace": $namespace}
               end |
               . + {
-                "architecture": $arch_config,
-                "namespace": $namespace
+                "architecture": $arch_config
               }
             ]
           }')
