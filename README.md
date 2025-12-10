@@ -17,11 +17,26 @@ and production.
 
 ## Available Templates
 
+### Provisioner-Based Templates
+
+Advanced templates using Ansible/shell provisioners:
+
 | Template | Description | Base Image | Platforms |
 | -------- | ----------- | ---------- | --------- |
 | [attack-box](./templates/attack-box) | Full-featured penetration testing toolkit | Kali Linux | Container, AMI |
 | [sliver](./templates/sliver) | Sliver C2 server and client | Ubuntu 25.04 | Container, AMI |
 | [atomic-red-team](./templates/atomic-red-team) | Atomic Red Team testing framework | Ubuntu 22.04 | Container, AMI |
+| [ttpforge](./templates/ttpforge) | TTP Forge testing framework | Ubuntu 25.04 | Container, AMI |
+
+### Dockerfile-Based Templates
+
+Simple templates using existing Dockerfiles:
+
+| Template | Description | Type | Platforms |
+| -------- | ----------- | ---- | --------- |
+| [printer-monitor](./templates/printer-monitor) | Brother printer health monitoring | Utility | Container |
+| [guacamole-provisioner](./templates/guacamole-provisioner) | Apache Guacamole connection provisioner | Utility | Container |
+| [atomic-red-dockerfile](./templates/atomic-red-dockerfile) | Atomic Red Team (Dockerfile variant) | Security | Container |
 
 ## Quick Start
 
@@ -35,21 +50,56 @@ and production.
 
 ### Building a Template
 
+#### Building Provisioner-Based Templates
+
+Templates with complex provisioning (Ansible/shell):
+
 ```bash
-# List available templates
-warpgate templates list
+# Build with provisioners (requires PROVISION_REPO_PATH)
+warpgate build templates/attack-box/warpgate.yaml \
+  --arch amd64 \
+  --registry ghcr.io/l50 \
+  --var PROVISION_REPO_PATH=$HOME/ansible-collection-arsenal
 
-# Get template info
-warpgate templates info attack-box
+# Build for ARM64
+warpgate build templates/ttpforge/warpgate.yaml \
+  --arch arm64 \
+  --registry ghcr.io/l50 \
+  --var PROVISION_REPO_PATH=$HOME/ansible-collection-arsenal \
+  --verbose
 
-# Build container image from template
-warpgate build --template attack-box
+# Build and push to registry
+warpgate build templates/sliver/warpgate.yaml \
+  --arch amd64 \
+  --registry ghcr.io/l50 \
+  --var PROVISION_REPO_PATH=$HOME/ansible-collection-arsenal \
+  --push
+```
 
-# Build container and push to registry
-warpgate build --template attack-box --push --registry ghcr.io/yourorg
+#### Building Dockerfile-Based Templates
 
-# Build AWS AMI
-warpgate build --template attack-box --target ami --region us-east-1
+Simple templates with existing Dockerfiles (no vars needed):
+
+```bash
+# Build from Dockerfile
+warpgate build templates/printer-monitor/warpgate.yaml --arch amd64
+
+# Build with custom registry
+warpgate build templates/guacamole-provisioner/warpgate.yaml \
+  --arch amd64 \
+  --registry ghcr.io/l50 \
+  --verbose
+
+# Build for ARM64 and push
+warpgate build templates/printer-monitor/warpgate.yaml \
+  --arch arm64 \
+  --registry ghcr.io/l50 \
+  --push
+
+# Build with custom build args
+warpgate build templates/atomic-red-dockerfile/warpgate.yaml \
+  --arch amd64 \
+  --build-arg BASE_IMAGE_ARCH=amd64
 ```
 
 ### Using Templates Locally
