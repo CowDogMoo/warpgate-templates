@@ -382,8 +382,7 @@ jobs:
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
           name: digests-${{ matrix.name }}-${{ matrix.architecture.arch }}
-          path: |
-            digest-${{ matrix.name }}-${{ matrix.architecture.arch }}.txt
+          path: ${{ github.workspace }}/digest-${{ matrix.name }}-${{ matrix.architecture.arch }}.txt
           retention-days: 1
 
   merge-manifests:
