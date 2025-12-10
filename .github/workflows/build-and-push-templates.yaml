@@ -141,7 +141,7 @@ jobs:
           # Generate GHA matrix from local templates
           MATRIX=$(warpgate templates list --source local --format gha-matrix --quiet)
 
-          MATRIX=$(echo "$MATRIX" | jq '{
+          MATRIX=$(echo "$MATRIX" | jq --arg namespace "${GITHUB_REPOSITORY_OWNER}" '{
             include: [
               .template[] |
               . as $template |
@@ -164,7 +164,7 @@ jobs:
               end |
               . + {
                 "architecture": $arch_config,
-                "namespace": "l50"
+                "namespace": $namespace
               }
             ]
           }')
