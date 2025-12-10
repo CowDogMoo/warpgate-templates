@@ -48,6 +48,7 @@ provisioners:
       galaxy_file: ${PROVISION_REPO_PATH}/requirements.yml
       extra_vars:
         ansible_shell_executable: /bin/bash
+        atomic_cleanup: "true"
       ansible_env_vars:
         - PACKER_BUILD_NAME={{ build_name }}
         - ANSIBLE_REMOTE_TMP=/tmp/ansible-tmp-$USER
