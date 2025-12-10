@@ -389,6 +389,7 @@ jobs:
             --registry ghcr.io/${{ matrix.namespace }} \
             --save-digests \
             --digest-dir "$GITHUB_WORKSPACE" \
+            --verbose \
             --cache-from type=registry,ref=ghcr.io/${{ matrix.namespace }}/${{ matrix.name }}:buildcache-${{ matrix.architecture.arch }} \
             --cache-to type=registry,ref=ghcr.io/${{ matrix.namespace }}/${{ matrix.name }}:buildcache-${{ matrix.architecture.arch }},mode=max
 
@@ -529,6 +530,19 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.WG_IMAGE_BUILDER_PAT }}
+
+      - name: Set up Docker Buildx
+        run: |
+          # Create and bootstrap a BuildKit builder for warpgate
+          docker buildx create --name warpgate --driver docker-container --bootstrap --use
+          docker buildx inspect warpgate
+
+          # Verify the builder container is running and accessible
+          docker ps | grep buildx_buildkit_warpgate0 || {
+            echo "ERROR: BuildKit builder container not found"
+            docker ps
+            exit 1
+          }
 
       - name: Create multi-arch manifest
         run: |
