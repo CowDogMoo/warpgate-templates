@@ -398,6 +398,10 @@ jobs:
 
           export PROVISION_REPO_PATH="$HOME/${{ matrix.provision_repo_path }}"
 
+          # Copy Docker credentials to root user for sudo access
+          sudo mkdir -p /root/.docker
+          sudo cp -f ~/.docker/config.json /root/.docker/config.json
+
           # Build for single architecture only
           sudo -E warpgate build warpgate.yaml \
             --arch ${{ matrix.architecture.arch }} \
@@ -506,6 +510,10 @@ jobs:
 
       - name: Create multi-arch manifest
         run: |
+          # Copy Docker credentials to root user for sudo access
+          sudo mkdir -p /root/.docker
+          sudo cp -f ~/.docker/config.json /root/.docker/config.json
+
           # Create and push multi-arch manifest using warpgate
           sudo -E warpgate manifests create \
             --name ${{ matrix.name }} \
