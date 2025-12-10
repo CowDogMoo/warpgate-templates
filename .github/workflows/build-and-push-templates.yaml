@@ -207,18 +207,8 @@ jobs:
       matrix: ${{ fromJson(needs.discover-templates.outputs.matrix) }}
       fail-fast: false
     steps:
-      - name: Generate Token
-        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94 # v2.2.0
-        id: app-token
-        with:
-          app-id: ${{ secrets.BOT_APP_ID }}
-          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
-          repositories: warpgate-templates
-
       - name: Checkout git repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-        with:
-          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Go
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
@@ -311,7 +301,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ steps.app-token.outputs.token }}
+          password: ${{ secrets.WG_IMAGE_BUILDER_PAT }}
 
       - name: Free up disk space
         run: |
@@ -384,7 +374,7 @@ jobs:
             --save-digests \
             --digest-dir "$GITHUB_WORKSPACE"
         env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_TOKEN: ${{ secrets.WG_IMAGE_BUILDER_PAT }}
 
       - name: Upload digest
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
@@ -403,18 +393,8 @@ jobs:
       matrix: ${{ fromJson(needs.discover-templates.outputs.templates) }}
       fail-fast: false
     steps:
-      - name: Generate Token
-        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94 # v2.2.0
-        id: app-token
-        with:
-          app-id: ${{ secrets.BOT_APP_ID }}
-          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
-          repositories: warpgate-templates
-
       - name: Checkout git repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-        with:
-          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Go
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
@@ -495,7 +475,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ steps.app-token.outputs.token }}
+          password: ${{ secrets.WG_IMAGE_BUILDER_PAT }}
 
       - name: Create multi-arch manifest
         run: |
@@ -505,7 +485,7 @@ jobs:
             --registry ghcr.io/${{ matrix.namespace }} \
             --tag latest
         env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_TOKEN: ${{ secrets.WG_IMAGE_BUILDER_PAT }}
 
       - name: Verify multi-arch manifest
         run: |
