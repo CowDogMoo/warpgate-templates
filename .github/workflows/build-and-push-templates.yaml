@@ -162,7 +162,8 @@ jobs:
                 .
               end |
               . + {
-                "architecture": $arch_config
+                "architecture": $arch_config,
+                "namespace": "l50"
               }
             ]
           }')
