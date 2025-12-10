@@ -495,7 +495,8 @@ jobs:
           warpgate manifests create \
             --name ${{ matrix.name }} \
             --registry ghcr.io/${{ matrix.namespace }} \
-            --tag latest
+            --tag latest \
+            --digest-dir .
         env:
           GITHUB_TOKEN: ${{ secrets.WG_IMAGE_BUILDER_PAT }}
 
