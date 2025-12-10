@@ -208,6 +208,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.discover-templates.outputs.matrix) }}
       fail-fast: false
+      max-parallel: 4
     steps:
       - name: Checkout git repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -310,16 +311,9 @@ jobs:
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
-          # Don't delete AGENT_TOOLSDIRECTORY as it contains Go installation
 
       - name: Install Warpgate
         run: |
-          set -x
-
-          # Verify Go is accessible (setup-go already configured everything)
-          which go
-          go version
-
           # Clone and build warpgate
           git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
           cd /tmp/warpgate
@@ -327,7 +321,7 @@ jobs:
           # Build warpgate
           task -y go:build
 
-          # Install to user directory (rootless)
+          # Install to user directory
           mkdir -p "$HOME/.local/bin"
           cp warpgate "$HOME/.local/bin/warpgate"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
@@ -362,25 +356,41 @@ jobs:
           docker buildx create --name warpgate --driver docker-container --bootstrap --use
           docker buildx inspect warpgate
 
+          # Verify the builder container is running and accessible
+          docker ps | grep buildx_buildkit_warpgate0 || {
+            echo "ERROR: BuildKit builder container not found"
+            docker ps
+            exit 1
+          }
+
+      - name: Validate template configuration
+        run: |
+          cd "$GITHUB_WORKSPACE/templates/${{ matrix.name }}"
+
+          # Verify warpgate.yaml exists
+          if [ ! -f "warpgate.yaml" ]; then
+            echo "ERROR: warpgate.yaml not found in template directory"
+            exit 1
+          fi
+
+          echo "Template configuration found for ${{ matrix.name }}"
+          cat warpgate.yaml
+
       - name: Build ${{ matrix.architecture.arch }} Image
         run: |
           cd "$GITHUB_WORKSPACE/templates/${{ matrix.name }}"
 
           export PROVISION_REPO_PATH="$HOME/${{ matrix.provision_repo_path }}"
 
-          # Build for single architecture only using BuildKit
+          # Build for single architecture only using BuildKit with cache
           warpgate build warpgate.yaml \
             --arch ${{ matrix.architecture.arch }} \
             --push \
             --registry ghcr.io/${{ matrix.namespace }} \
             --save-digests \
-            --digest-dir "$GITHUB_WORKSPACE"
-
-          # Debug: List digest files in workspace
-          echo "Digest files in $GITHUB_WORKSPACE:"
-          find "$GITHUB_WORKSPACE" -maxdepth 1 -name "digest-*.txt" -type f || echo "No digest files found"
-          echo ""
-          echo "Expected digest file: $GITHUB_WORKSPACE/digest-${{ matrix.name }}-${{ matrix.architecture.arch }}.txt"
+            --digest-dir "$GITHUB_WORKSPACE" \
+            --cache-from type=registry,ref=ghcr.io/${{ matrix.namespace }}/${{ matrix.name }}:buildcache-${{ matrix.architecture.arch }} \
+            --cache-to type=registry,ref=ghcr.io/${{ matrix.namespace }}/${{ matrix.name }}:buildcache-${{ matrix.architecture.arch }},mode=max
 
           # Check if the specific digest file exists
           if [ -f "$GITHUB_WORKSPACE/digest-${{ matrix.name }}-${{ matrix.architecture.arch }}.txt" ]; then
@@ -457,12 +467,6 @@ jobs:
 
       - name: Install Warpgate
         run: |
-          set -x
-
-          # Verify Go is accessible (setup-go already configured everything)
-          which go
-          go version
-
           # Clone and build warpgate
           git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
           cd /tmp/warpgate
@@ -470,7 +474,7 @@ jobs:
           # Build warpgate
           task -y go:build
 
-          # Install to user directory (rootless)
+          # Install to user directory
           mkdir -p "$HOME/.local/bin"
           cp warpgate "$HOME/.local/bin/warpgate"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
@@ -496,7 +500,30 @@ jobs:
           echo "Digest files:"
           ls -la digest-*.txt || echo "No digest files found"
 
-      - name: Login to GitHub Container Registry (Docker)
+      - name: Verify digest files
+        run: |
+          # Verify digest files for this template exist
+          echo "Verifying digest files for template: ${{ matrix.name }}"
+
+          for file in digest-${{ matrix.name }}-*.txt; do
+            if [ ! -f "$file" ]; then
+              echo "ERROR: Expected digest file not found: $file"
+              ls -la
+              exit 1
+            fi
+
+            # Verify digest format (sha256:hex)
+            if ! grep -qE '^sha256:[a-f0-9]{64}$' "$file"; then
+              echo "ERROR: Invalid digest format in $file:"
+              cat "$file"
+              exit 1
+            fi
+
+            echo "Verified digest file: $file"
+            cat "$file"
+          done
+
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -505,10 +532,10 @@ jobs:
 
       - name: Create multi-arch manifest
         run: |
-          # Create and push multi-arch manifest using warpgate (rootless)
           warpgate manifests create \
             --name ${{ matrix.name }} \
-            --registry ghcr.io/${{ matrix.namespace }} \
+            --registry ghcr.io \
+            --namespace ${{ matrix.namespace }} \
             --tag latest \
             --digest-dir .
         env:
