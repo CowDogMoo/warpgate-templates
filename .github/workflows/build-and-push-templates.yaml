@@ -106,8 +106,13 @@ jobs:
           # Build warpgate
           task -y go:build
 
-          # Install and verify
-          sudo cp warpgate /usr/local/bin/warpgate
+          # Install to user directory (rootless)
+          mkdir -p "$HOME/.local/bin"
+          cp warpgate "$HOME/.local/bin/warpgate"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+          # Verify installation
+          export PATH="$HOME/.local/bin:$PATH"
           which warpgate
           warpgate version
 
@@ -295,12 +300,16 @@ jobs:
               --pre
           fi
 
-      - name: Login to GitHub Container Registry
+      - name: Login to GitHub Container Registry (Docker)
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry (Buildah)
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | buildah login --username ${{ github.actor }} --password-stdin ghcr.io
 
       - name: Free up disk space
         run: |
@@ -324,8 +333,13 @@ jobs:
           # Build warpgate
           task -y go:build
 
-          # Install and verify
-          sudo cp warpgate /usr/local/bin/warpgate
+          # Install to user directory (rootless)
+          mkdir -p "$HOME/.local/bin"
+          cp warpgate "$HOME/.local/bin/warpgate"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+          # Verify installation
+          export PATH="$HOME/.local/bin:$PATH"
           which warpgate
           warpgate version
 
@@ -334,25 +348,26 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y buildah podman runc
 
-      - name: Configure Container Storage (VFS driver)
+      - name: Configure Container Storage (rootless VFS driver)
         run: |
-          sudo mkdir -p /etc/containers
-          sudo tee /etc/containers/storage.conf > /dev/null <<EOF
+          mkdir -p ~/.config/containers
+          mkdir -p ~/.local/share/containers/storage
+          tee ~/.config/containers/storage.conf > /dev/null <<EOF
           [storage]
           driver = "vfs"
-          runroot = "/run/containers/storage"
-          graphroot = "/var/lib/containers/storage"
+          runroot = "$HOME/.local/share/containers/storage/run"
+          graphroot = "$HOME/.local/share/containers/storage"
 
           [storage.options]
           pull_options = {enable_partial_images = "false", use_hard_links = "false", ostree_repos=""}
           EOF
 
           echo "Storage configuration:"
-          cat /etc/containers/storage.conf
+          cat ~/.config/containers/storage.conf
 
-      - name: Configure Container Runtime (runc)
+      - name: Configure Container Runtime (rootless runc)
         run: |
-          sudo tee /etc/containers/containers.conf > /dev/null <<EOF
+          tee ~/.config/containers/containers.conf > /dev/null <<EOF
           [engine]
           runtime = "runc"
 
@@ -366,7 +381,7 @@ jobs:
           EOF
 
           echo "Runtime configuration:"
-          cat /etc/containers/containers.conf
+          cat ~/.config/containers/containers.conf
 
       - name: Configure Warpgate
         run: |
@@ -393,17 +408,13 @@ jobs:
 
       - name: Build ${{ matrix.architecture.arch }} Image
         run: |
-          # Run warpgate natively with sudo (Linux native execution)
+          # Run warpgate in rootless mode
           cd "$GITHUB_WORKSPACE/templates/${{ matrix.name }}"
 
           export PROVISION_REPO_PATH="$HOME/${{ matrix.provision_repo_path }}"
 
-          # Copy Docker credentials to root user for sudo access
-          sudo mkdir -p /root/.docker
-          sudo cp -f ~/.docker/config.json /root/.docker/config.json
-
-          # Build for single architecture only
-          sudo -E warpgate build warpgate.yaml \
+          # Build for single architecture only (rootless)
+          warpgate build warpgate.yaml \
             --arch ${{ matrix.architecture.arch }} \
             --push \
             --registry ghcr.io/${{ matrix.namespace }} \
@@ -490,8 +501,13 @@ jobs:
           # Build warpgate
           task -y go:build
 
-          # Install and verify
-          sudo cp warpgate /usr/local/bin/warpgate
+          # Install to user directory (rootless)
+          mkdir -p "$HOME/.local/bin"
+          cp warpgate "$HOME/.local/bin/warpgate"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+          # Verify installation
+          export PATH="$HOME/.local/bin:$PATH"
           which warpgate
           warpgate version
 
@@ -501,21 +517,21 @@ jobs:
           pattern: digests-${{ matrix.name }}-*
           merge-multiple: true
 
-      - name: Login to GitHub Container Registry
+      - name: Login to GitHub Container Registry (Docker)
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Login to GitHub Container Registry (Buildah)
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | buildah login --username ${{ github.actor }} --password-stdin ghcr.io
+
       - name: Create multi-arch manifest
         run: |
-          # Copy Docker credentials to root user for sudo access
-          sudo mkdir -p /root/.docker
-          sudo cp -f ~/.docker/config.json /root/.docker/config.json
-
-          # Create and push multi-arch manifest using warpgate
-          sudo -E warpgate manifests create \
+          # Create and push multi-arch manifest using warpgate (rootless)
+          warpgate manifests create \
             --name ${{ matrix.name }} \
             --registry ghcr.io/${{ matrix.namespace }} \
             --tag latest

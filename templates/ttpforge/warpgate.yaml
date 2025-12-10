@@ -67,8 +67,8 @@ provisioners:
       inline:
         - echo "Build completed successfully"
       changes:
-        - USER root
-        - WORKDIR /root/ttpforge
+        - USER ttpforge
+        - WORKDIR /home/ttpforge
 post_processors:
     - type: docker-tag
       repository: ttpforge
