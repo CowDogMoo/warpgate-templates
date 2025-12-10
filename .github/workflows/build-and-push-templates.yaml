@@ -122,11 +122,8 @@ jobs:
           # Add this repo as a local template source
           warpgate config init
 
-          # Configure warpgate with correct runtime and storage settings
+          # Configure warpgate with default settings
           cat > ~/.config/warpgate/config.yaml <<EOF
-          storage:
-              driver: vfs
-
           container:
               defaultbaseimage: ubuntu
               defaultbaseversion: latest
@@ -134,7 +131,6 @@ jobs:
               defaultplatforms:
                   - linux/amd64
                   - linux/arm64
-              runtime: /usr/bin/runc
           EOF
 
           echo "Warpgate configuration:"
@@ -307,10 +303,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Login to GitHub Container Registry (Buildah)
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | buildah login --username ${{ github.actor }} --password-stdin ghcr.io
-
       - name: Free up disk space
         run: |
           sudo rm -rf /usr/share/dotnet
@@ -343,57 +335,13 @@ jobs:
           which warpgate
           warpgate version
 
-      - name: Install Buildah and Container Tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y buildah podman runc
-
-      - name: Configure Container Storage (rootless VFS driver)
-        run: |
-          mkdir -p ~/.config/containers
-          mkdir -p ~/.local/share/containers/storage
-          tee ~/.config/containers/storage.conf > /dev/null <<EOF
-          [storage]
-          driver = "vfs"
-          runroot = "$HOME/.local/share/containers/storage/run"
-          graphroot = "$HOME/.local/share/containers/storage"
-
-          [storage.options]
-          pull_options = {enable_partial_images = "false", use_hard_links = "false", ostree_repos=""}
-          EOF
-
-          echo "Storage configuration:"
-          cat ~/.config/containers/storage.conf
-
-      - name: Configure Container Runtime (rootless runc)
-        run: |
-          tee ~/.config/containers/containers.conf > /dev/null <<EOF
-          [engine]
-          runtime = "runc"
-
-          [engine.runtimes]
-          runc = [
-            "/usr/bin/runc"
-          ]
-
-          [network]
-          # Use "none" for builds - container networking not needed during build
-          network_backend = "none"
-          EOF
-
-          echo "Runtime configuration:"
-          cat ~/.config/containers/containers.conf
-
       - name: Configure Warpgate
         run: |
           # Initialize warpgate config
           warpgate config init
 
-          # Configure warpgate with correct runtime and storage settings
+          # Configure warpgate with default settings (BuildKit doesn't need VFS storage)
           cat > ~/.config/warpgate/config.yaml <<EOF
-          storage:
-              driver: vfs
-
           container:
               defaultbaseimage: ubuntu
               defaultbaseversion: latest
@@ -401,20 +349,24 @@ jobs:
               defaultplatforms:
                   - linux/amd64
                   - linux/arm64
-              runtime: /usr/bin/runc
           EOF
 
           echo "Warpgate configuration:"
           cat ~/.config/warpgate/config.yaml
 
+      - name: Set up Docker Buildx
+        run: |
+          # Create and bootstrap a BuildKit builder for warpgate
+          docker buildx create --name warpgate --driver docker-container --bootstrap --use
+          docker buildx inspect warpgate
+
       - name: Build ${{ matrix.architecture.arch }} Image
         run: |
-          # Run warpgate in rootless mode
           cd "$GITHUB_WORKSPACE/templates/${{ matrix.name }}"
 
           export PROVISION_REPO_PATH="$HOME/${{ matrix.provision_repo_path }}"
 
-          # Build for single architecture only (rootless)
+          # Build for single architecture only using BuildKit
           warpgate build warpgate.yaml \
             --arch ${{ matrix.architecture.arch }} \
             --push \
@@ -524,10 +476,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Login to GitHub Container Registry (Buildah)
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | buildah login --username ${{ github.actor }} --password-stdin ghcr.io
 
       - name: Create multi-arch manifest
         run: |
