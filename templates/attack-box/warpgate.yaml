@@ -36,10 +36,8 @@ provisioners:
         - docker.amd64
       inline:
         - apt-get update
-        - apt-get install -y --no-install-recommends python3 python3-pip git
-        - apt-get install -y sudo
-        - apt-get install -y --no-install-recommends ansible || dpkg --configure -a && apt-get install -y --no-install-recommends ansible
-        - rm -rf /var/lib/apt/lists/*
+        - apt-get install -y --no-install-recommends python3 python3-pip git sudo
+        - python3 -m pip install --break-system-packages ansible-core
     - type: ansible
       only:
         - docker.arm64

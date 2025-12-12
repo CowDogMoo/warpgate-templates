@@ -31,11 +31,12 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
 
 env:
-  GO_VERSION: "1.25.4"
-  PYTHON_VERSION: "3.12"
-  TASK_VERSION: "3.38.0"
+  DEBIAN_FRONTEND: noninteractive
+  GO_VERSION: 1.25.5
+  PYTHON_VERSION: 3.12
+  TASK_VERSION: 3.45.5
   TASK_X_REMOTE_TASKFILES: 1
-  WARPGATE_VERSION: "feat/go-rewrite"  # Use go-rewrite branch for now, change to tag when released
+  WARPGATE_VERSION: "feat/improve-docs-and-registry"
 
 jobs:
   discover-templates:
