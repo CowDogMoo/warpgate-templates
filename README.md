@@ -1,19 +1,48 @@
 # Warp Gate Templates
 
-Official template repository for
-[Warp Gate](https://github.com/cowdogmoo/warpgate) - a robust, automatable
-engine for building security labs, golden images, and multi-architecture containers.
+**Ready-to-use templates for building security labs, golden images, and multi-architecture containers.**
+
+[![License](https://img.shields.io/github/license/CowDogMoo/warpgate-templates?label=License&style=flat&color=blue&logo=github)](https://github.com/CowDogMoo/warpgate-templates/blob/main/LICENSE)
+[![Release](https://img.shields.io/github/v/release/CowDogMoo/warpgate-templates?label=Release&logo=github)](https://github.com/CowDogMoo/warpgate-templates/releases)
+
+[![Pre-Commit](https://github.com/CowDogMoo/warpgate-templates/actions/workflows/pre-commit.yaml/badge.svg)](https://github.com/CowDogMoo/warpgate-templates/actions/workflows/pre-commit.yaml)
+[![Validate Templates](https://github.com/CowDogMoo/warpgate-templates/actions/workflows/validate-templates.yaml/badge.svg)](https://github.com/CowDogMoo/warpgate-templates/actions/workflows/validate-templates.yaml)
+[![Build and Push](https://github.com/CowDogMoo/warpgate-templates/actions/workflows/build-and-push-templates.yaml/badge.svg)](https://github.com/CowDogMoo/warpgate-templates/actions/workflows/build-and-push-templates.yaml)
+
+---
 
 ## Overview
 
-Warp Gate is a powerful infrastructure-as-code platform built on modular Packer
-templates and Taskfile-driven workflows. This repository provides pre-built
-templates that spin up rapidly for use in security labs, cyber ranges, DevOps CI,
-and immutable infrastructure deployments.
+Official template repository for [Warp Gate](https://github.com/cowdogmoo/warpgate) -
+a robust, automatable engine for building security labs, golden images, and
+multi-architecture containers.
 
-All templates support both **multi-architecture container images** (amd64/arm64)
-and **AWS AMIs**, enabling consistent environments across development, testing,
-and production.
+This repository provides production-ready templates that enable rapid deployment of:
+
+- **Security testing environments** - Red team tooling, C2 infrastructure, attack platforms
+- **Golden images** - Standardized base images for consistent deployments
+- **Multi-arch containers** - Native builds for amd64 and arm64 architectures
+- **AWS AMIs** - Cloud-ready images for EC2 deployment
+
+All templates are built using declarative YAML configurations and support both
+container and cloud infrastructure targets.
+
+## Quick Start
+
+```bash
+# Install warpgate
+go install github.com/CowDogMoo/warpgate/cmd/warpgate@latest
+
+# List available templates
+warpgate templates list
+
+# Build a security template
+warpgate build attack-box --arch amd64 \
+  --var PROVISION_REPO_PATH=$HOME/ansible-collection-arsenal
+
+# Build a simple container template
+warpgate build printer-monitor --arch amd64 --push
+```
 
 ## Available Templates
 
@@ -38,17 +67,31 @@ Simple templates using existing Dockerfiles:
 | [guacamole-provisioner](./templates/guacamole-provisioner) | Apache Guacamole connection provisioner | Utility | Container |
 | [atomic-red-dockerfile](./templates/atomic-red-dockerfile) | Atomic Red Team (Dockerfile variant) | Security | Container |
 
-## Quick Start
+## Features
+
+### Template Capabilities
+
+| Feature | Description |
+| ------- | ----------- |
+| **Multi-Architecture** | Build for amd64 and arm64 simultaneously |
+| **Dual Output** | Create both container images and AWS AMIs |
+| **Provisioner Support** | Ansible playbooks, shell scripts, and custom provisioners |
+| **Variable Substitution** | Use environment variables and CLI flags |
+| **Registry Integration** | Push directly to container registries |
+| **Modular Design** | Reusable, composable configurations |
+| **CI/CD Ready** | Automated validation and builds |
+| **Version Control** | Semantic versioning with compatibility checks |
+
+## Usage Guide
 
 ### Prerequisites
 
 - [Warp Gate](https://github.com/cowdogmoo/warpgate) CLI tool (`>= 1.0.0`)
-- [Packer](https://www.packer.io/) (`>= 1.9.0`) - underlying build engine
-- [Task](https://taskfile.dev/) - workflow automation (optional but recommended)
 - For container builds: Docker or Podman
 - For AMI builds: AWS account with appropriate permissions
+- For provisioner-based templates: Provisioning repository (e.g., ansible-collection-arsenal)
 
-### Building a Template
+### Building Templates
 
 #### Building Provisioner-Based Templates
 
@@ -244,38 +287,44 @@ file for details.
 Individual templates may have specific licensing requirements - check each
 template's README.md.
 
+## Documentation
+
+### Core Documentation
+
+- **[Warp Gate Installation](https://github.com/cowdogmoo/warpgate/blob/main/docs/installation.md)** - Install the Warp Gate CLI
+- **[Usage Guide](https://github.com/cowdogmoo/warpgate/blob/main/docs/usage-guide.md)** - Common workflows and examples
+- **[Template Reference](https://github.com/cowdogmoo/warpgate/blob/main/docs/template-reference.md)** - Complete YAML syntax reference
+- **[Troubleshooting](https://github.com/cowdogmoo/warpgate/blob/main/docs/troubleshooting.md)** - Common issues and solutions
+
+### Template Development
+
+- **[Contributing Guide](./CONTRIBUTING.md)** - How to create and submit templates
+- **[Template Repositories](https://github.com/cowdogmoo/warpgate/blob/main/docs/template-repositories.md)** - Repository management
+
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/cowdogmoo/warpgate-templates/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/cowdogmoo/warpgate-templates/discussions)
-- **Documentation**: [Warpgate Docs](https://github.com/cowdogmoo/warpgate/docs)
+Need help or want to contribute?
 
-## Architecture
+- **Issues**: [Report bugs or request features](https://github.com/cowdogmoo/warpgate-templates/issues)
+- **Discussions**: [Ask questions and share ideas](https://github.com/cowdogmoo/warpgate-templates/discussions)
+- **Main Project**: [Warp Gate Repository](https://github.com/cowdogmoo/warpgate)
 
-Warp Gate leverages:
+## Built With
 
-- **Packer** - Industry-standard tool for creating identical machine images
-  across multiple platforms
-- **Taskfile** - Modern task runner for automating complex build workflows
-- **Modular Templates** - Reusable, composable configurations for rapid
-  deployment
-- **Multi-arch Support** - Native builds for amd64 and arm64 architectures
+This project leverages industry-standard tools:
 
-This architecture enables reproducible, version-controlled infrastructure that
-can be automated in CI/CD pipelines or used locally for development.
+- **[Warp Gate](https://github.com/cowdogmoo/warpgate)** - Template build engine
+- **[Packer](https://www.packer.io/)** - Multi-platform image builder
+- **[Ansible](https://www.ansible.com/)** - Configuration management and provisioning
+- **[BuildKit](https://github.com/moby/buildkit)** - Container image builds
+- **[GitHub Actions](https://github.com/features/actions)** - CI/CD automation
 
 ## Related Projects
 
-- [Warp Gate](https://github.com/cowdogmoo/warpgate) - The core build engine
-- [ansible-collection-arsenal](https://github.com/l50/ansible-collection-arsenal)
-  \- Ansible roles for security tooling provisioning
-- [ansible-collection-workstation](https://github.com/CowDogMoo/ansible-collection-workstation)
-  \- Ansible roles for workstation setup
+- **[Warp Gate](https://github.com/cowdogmoo/warpgate)** - Core build engine and CLI
+- **[ansible-collection-arsenal](https://github.com/l50/ansible-collection-arsenal)** - Security tooling provisioning roles
+- **[ansible-collection-workstation](https://github.com/CowDogMoo/ansible-collection-workstation)** - Workstation configuration roles
 
 ---
 
-**Status**: Active Development
-
-**Version**: 1.0.0
-
-**Maintained by**: [CowDogMoo](https://github.com/CowDogMoo)
+**Maintained by [CowDogMoo](https://github.com/CowDogMoo)** | **License: [MIT](./LICENSE)**
