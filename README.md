@@ -1,6 +1,7 @@
 # Warp Gate Templates
 
-**Ready-to-use templates for building security labs, golden images, and multi-architecture containers.**
+**Ready-to-use templates for building security labs, golden images, and
+multi-architecture containers.**
 
 [![License](https://img.shields.io/github/license/CowDogMoo/warpgate-templates?label=License&style=flat&color=blue&logo=github)](https://github.com/CowDogMoo/warpgate-templates/blob/main/LICENSE)
 [![Release](https://img.shields.io/github/v/release/CowDogMoo/warpgate-templates?label=Release&logo=github)](https://github.com/CowDogMoo/warpgate-templates/releases)
@@ -13,13 +14,16 @@
 
 ## Overview
 
-Official template repository for [Warp Gate](https://github.com/cowdogmoo/warpgate) -
-a robust, automatable engine for building security labs, golden images, and
-multi-architecture containers.
+Official template repository for
+[Warp Gate](https://github.com/cowdogmoo/warpgate) - a robust, automatable
+engine for building security labs, golden images, and multi-architecture
+containers.
 
-This repository provides production-ready templates that enable rapid deployment of:
+This repository provides production-ready templates that enable rapid
+deployment of:
 
-- **Security testing environments** - Red team tooling, C2 infrastructure, attack platforms
+- **Security testing environments** - Red team tooling, C2 infrastructure,
+  attack platforms
 - **Golden images** - Standardized base images for consistent deployments
 - **Multi-arch containers** - Native builds for amd64 and arm64 architectures
 - **AWS AMIs** - Cloud-ready images for EC2 deployment
@@ -75,7 +79,7 @@ Simple templates using existing Dockerfiles:
 | ------- | ----------- |
 | **Multi-Architecture** | Build for amd64 and arm64 simultaneously |
 | **Dual Output** | Create both container images and AWS AMIs |
-| **Provisioner Support** | Ansible playbooks, shell scripts, and custom provisioners |
+| **Provisioner Support** | Ansible, shell, and custom provisioners |
 | **Variable Substitution** | Use environment variables and CLI flags |
 | **Registry Integration** | Push directly to container registries |
 | **Modular Design** | Reusable, composable configurations |
@@ -291,21 +295,28 @@ template's README.md.
 
 ### Core Documentation
 
-- **[Warp Gate Installation](https://github.com/cowdogmoo/warpgate/blob/main/docs/installation.md)** - Install the Warp Gate CLI
-- **[Usage Guide](https://github.com/cowdogmoo/warpgate/blob/main/docs/usage-guide.md)** - Common workflows and examples
-- **[Template Reference](https://github.com/cowdogmoo/warpgate/blob/main/docs/template-reference.md)** - Complete YAML syntax reference
-- **[Troubleshooting](https://github.com/cowdogmoo/warpgate/blob/main/docs/troubleshooting.md)** - Common issues and solutions
+- **[Warp Gate Installation](https://github.com/cowdogmoo/warpgate/blob/main/docs/installation.md)**
+  \- Install the Warp Gate CLI
+- **[Usage Guide](https://github.com/cowdogmoo/warpgate/blob/main/docs/usage-guide.md)**
+  \- Common workflows and examples
+- **[Template Reference](https://github.com/cowdogmoo/warpgate/blob/main/docs/template-reference.md)**
+  \- Complete YAML syntax reference
+- **[Troubleshooting](https://github.com/cowdogmoo/warpgate/blob/main/docs/troubleshooting.md)**
+  \- Common issues and solutions
 
 ### Template Development
 
-- **[Contributing Guide](./CONTRIBUTING.md)** - How to create and submit templates
-- **[Template Repositories](https://github.com/cowdogmoo/warpgate/blob/main/docs/template-repositories.md)** - Repository management
+- **[Contributing Guide](./CONTRIBUTING.md)** - How to create and submit
+  templates
+- **[Template Repositories](https://github.com/cowdogmoo/warpgate/blob/main/docs/template-repositories.md)**
+  \- Repository management
 
 ## Support
 
 Need help or want to contribute?
 
-- **Issues**: [Report bugs or request features](https://github.com/cowdogmoo/warpgate-templates/issues)
+- **Issues**: [Report bugs or request features](
+  https://github.com/cowdogmoo/warpgate-templates/issues)
 - **Discussions**: [Ask questions and share ideas](https://github.com/cowdogmoo/warpgate-templates/discussions)
 - **Main Project**: [Warp Gate Repository](https://github.com/cowdogmoo/warpgate)
 
@@ -321,9 +332,12 @@ This project leverages industry-standard tools:
 
 ## Related Projects
 
-- **[Warp Gate](https://github.com/cowdogmoo/warpgate)** - Core build engine and CLI
-- **[ansible-collection-arsenal](https://github.com/l50/ansible-collection-arsenal)** - Security tooling provisioning roles
-- **[ansible-collection-workstation](https://github.com/CowDogMoo/ansible-collection-workstation)** - Workstation configuration roles
+- **[Warp Gate](https://github.com/cowdogmoo/warpgate)** - Core build engine
+  and CLI
+- **[ansible-collection-arsenal](https://github.com/l50/ansible-collection-arsenal)**
+  \- Security tooling provisioning roles
+- **[ansible-collection-workstation](https://github.com/CowDogMoo/ansible-collection-workstation)**
+  \- Workstation configuration roles
 
 ---
 
