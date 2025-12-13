@@ -53,7 +53,7 @@ jobs:
 
       - name: Install Warpgate
         run: |
-          git clone --branch feat/go-rewrite https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
+          git clone --branch main https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
           cd /tmp/warpgate
           task -y go:build
           sudo cp warpgate /usr/local/bin/warpgate
