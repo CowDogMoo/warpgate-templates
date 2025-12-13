@@ -21,7 +21,7 @@ on:
   workflow_dispatch:
 
 env:
-  GO_VERSION: "1.25.4"
+  WARPGATE_VERSION: "v3.0.0"
   PYTHON_VERSION: "3.11"
   TASK_VERSION: "3.38.0"
   TASK_X_REMOTE_TASKFILES: 1
@@ -35,28 +35,48 @@ jobs:
       - name: Checkout git repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
-      - name: Setup Go
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-
-      - name: Install Task
-        run: |
-          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
-          task --version
-
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgpgme-dev libbtrfs-dev
-
       - name: Install Warpgate
         run: |
-          git clone --branch main https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
-          cd /tmp/warpgate
-          task -y go:build
-          sudo cp warpgate /usr/local/bin/warpgate
+          set -euo pipefail
+
+          # Detect OS and architecture
+          OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+          ARCH="$(uname -m)"
+
+          # Map architecture names to Go conventions
+          case "$ARCH" in
+            x86_64)
+              ARCH="amd64v3"
+              ;;
+            aarch64|arm64)
+              ARCH="arm64"
+              ;;
+            armv7l)
+              ARCH="armv7"
+              ;;
+            armv6l)
+              ARCH="armv6"
+              ;;
+            *)
+              echo "Unsupported architecture: $ARCH"
+              exit 1
+              ;;
+          esac
+
+          # Download and install warpgate binary
+          VERSION="${{ env.WARPGATE_VERSION }}"
+          TARBALL="warpgate_${VERSION#v}_${OS}_${ARCH}.tar.gz"
+          URL="https://github.com/CowDogMoo/warpgate/releases/download/${VERSION}/${TARBALL}"
+
+          echo "Downloading warpgate ${VERSION} for ${OS}/${ARCH}..."
+          echo "URL: ${URL}"
+
+          curl -fsSL "$URL" -o /tmp/warpgate.tar.gz
+          sudo tar -xzf /tmp/warpgate.tar.gz -C /usr/local/bin warpgate
+          sudo chmod +x /usr/local/bin/warpgate
+          rm /tmp/warpgate.tar.gz
+
+          # Verify installation
           warpgate version
 
       - name: Find all templates

@@ -32,11 +32,10 @@ concurrency:
 
 env:
   DEBIAN_FRONTEND: noninteractive
-  GO_VERSION: 1.25.5
   PYTHON_VERSION: 3.12
   TASK_VERSION: 3.45.5
   TASK_X_REMOTE_TASKFILES: 1
-  WARPGATE_VERSION: "main"
+  WARPGATE_VERSION: "v3.0.0"
 
 jobs:
   discover-templates:
@@ -49,24 +48,8 @@ jobs:
       - name: Checkout git repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
-      - name: Setup Go
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: false
-
-      - name: Verify Go Installation and Add to PATH
+      - name: Setup XDG directories
         run: |
-          which go
-          go version
-          GOROOT_BIN="$(go env GOROOT)/bin"
-          GOPATH_BIN="$(go env GOPATH)/bin"
-          {
-            echo "$GOROOT_BIN"
-            echo "$GOPATH_BIN"
-          } >> "$GITHUB_PATH"
-
           # Set XDG directories and ensure they exist
           USER_ID="$(id -u)"
           export XDG_RUNTIME_DIR="/run/user/$USER_ID"
@@ -76,6 +59,7 @@ jobs:
           # Create directories if they don't exist
           mkdir -p "$XDG_CONFIG_HOME"
           mkdir -p "$XDG_DATA_HOME"
+          mkdir -p "$HOME/.local/bin"
 
           {
             echo "XDG_RUNTIME_DIR=/run/user/$USER_ID"
@@ -83,39 +67,50 @@ jobs:
             echo "XDG_DATA_HOME=$HOME/.local/share"
           } >> "$GITHUB_ENV"
 
-      - name: Install Task
-        run: |
-          sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
-          task --version
-
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgpgme-dev libbtrfs-dev
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Install Warpgate
         run: |
-          set -x
+          set -euo pipefail
 
-          # Verify Go is accessible (setup-go already configured everything)
-          which go
-          go version
+          # Detect OS and architecture
+          OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+          ARCH="$(uname -m)"
 
-          # Clone and build warpgate
-          git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
-          cd /tmp/warpgate
+          # Map architecture names to Go conventions
+          case "$ARCH" in
+            x86_64)
+              ARCH="amd64v3"
+              ;;
+            aarch64|arm64)
+              ARCH="arm64"
+              ;;
+            armv7l)
+              ARCH="armv7"
+              ;;
+            armv6l)
+              ARCH="armv6"
+              ;;
+            *)
+              echo "Unsupported architecture: $ARCH"
+              exit 1
+              ;;
+          esac
 
-          # Build warpgate
-          task -y go:build
+          # Download and install warpgate binary
+          VERSION="${{ env.WARPGATE_VERSION }}"
+          TARBALL="warpgate_${VERSION#v}_${OS}_${ARCH}.tar.gz"
+          URL="https://github.com/CowDogMoo/warpgate/releases/download/${VERSION}/${TARBALL}"
 
-          # Install to user directory (rootless)
-          mkdir -p "$HOME/.local/bin"
-          cp warpgate "$HOME/.local/bin/warpgate"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "Downloading warpgate ${VERSION} for ${OS}/${ARCH}..."
+          echo "URL: ${URL}"
+
+          curl -fsSL "$URL" -o /tmp/warpgate.tar.gz
+          tar -xzf /tmp/warpgate.tar.gz -C "$HOME/.local/bin" warpgate
+          chmod +x "$HOME/.local/bin/warpgate"
+          rm /tmp/warpgate.tar.gz
 
           # Verify installation
-          export PATH="$HOME/.local/bin:$PATH"
-          which warpgate
           warpgate version
 
       - name: Discover templates
@@ -215,24 +210,8 @@ jobs:
       - name: Checkout git repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
-      - name: Setup Go
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: false
-
-      - name: Verify Go Installation and Add to PATH
+      - name: Setup XDG directories
         run: |
-          which go
-          go version
-          GOROOT_BIN="$(go env GOROOT)/bin"
-          GOPATH_BIN="$(go env GOPATH)/bin"
-          {
-            echo "$GOROOT_BIN"
-            echo "$GOPATH_BIN"
-          } >> "$GITHUB_PATH"
-
           # Set XDG directories and ensure they exist
           USER_ID="$(id -u)"
           export XDG_RUNTIME_DIR="/run/user/$USER_ID"
@@ -242,6 +221,7 @@ jobs:
           # Create directories if they don't exist
           mkdir -p "$XDG_CONFIG_HOME"
           mkdir -p "$XDG_DATA_HOME"
+          mkdir -p "$HOME/.local/bin"
 
           {
             echo "XDG_RUNTIME_DIR=/run/user/$USER_ID"
@@ -249,15 +229,7 @@ jobs:
             echo "XDG_DATA_HOME=$HOME/.local/share"
           } >> "$GITHUB_ENV"
 
-      - name: Install Task
-        run: |
-          sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
-          task --version
-
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgpgme-dev libbtrfs-dev
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Setup Python
         uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
@@ -317,21 +289,46 @@ jobs:
 
       - name: Install Warpgate
         run: |
-          # Clone and build warpgate
-          git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
-          cd /tmp/warpgate
+          set -euo pipefail
 
-          # Build warpgate
-          task -y go:build
+          # Detect OS and architecture
+          OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+          ARCH="$(uname -m)"
 
-          # Install to user directory
-          mkdir -p "$HOME/.local/bin"
-          cp warpgate "$HOME/.local/bin/warpgate"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          # Map architecture names to Go conventions
+          case "$ARCH" in
+            x86_64)
+              ARCH="amd64v3"
+              ;;
+            aarch64|arm64)
+              ARCH="arm64"
+              ;;
+            armv7l)
+              ARCH="armv7"
+              ;;
+            armv6l)
+              ARCH="armv6"
+              ;;
+            *)
+              echo "Unsupported architecture: $ARCH"
+              exit 1
+              ;;
+          esac
+
+          # Download and install warpgate binary
+          VERSION="${{ env.WARPGATE_VERSION }}"
+          TARBALL="warpgate_${VERSION#v}_${OS}_${ARCH}.tar.gz"
+          URL="https://github.com/CowDogMoo/warpgate/releases/download/${VERSION}/${TARBALL}"
+
+          echo "Downloading warpgate ${VERSION} for ${OS}/${ARCH}..."
+          echo "URL: ${URL}"
+
+          curl -fsSL "$URL" -o /tmp/warpgate.tar.gz
+          tar -xzf /tmp/warpgate.tar.gz -C "$HOME/.local/bin" warpgate
+          chmod +x "$HOME/.local/bin/warpgate"
+          rm /tmp/warpgate.tar.gz
 
           # Verify installation
-          export PATH="$HOME/.local/bin:$PATH"
-          which warpgate
           warpgate version
 
       - name: Configure Warpgate
@@ -426,24 +423,8 @@ jobs:
       - name: Checkout git repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
-      - name: Setup Go
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-          cache: false
-
-      - name: Verify Go Installation and Add to PATH
+      - name: Setup XDG directories
         run: |
-          which go
-          go version
-          GOROOT_BIN="$(go env GOROOT)/bin"
-          GOPATH_BIN="$(go env GOPATH)/bin"
-          {
-            echo "$GOROOT_BIN"
-            echo "$GOPATH_BIN"
-          } >> "$GITHUB_PATH"
-
           # Set XDG directories and ensure they exist
           USER_ID="$(id -u)"
           export XDG_RUNTIME_DIR="/run/user/$USER_ID"
@@ -453,6 +434,7 @@ jobs:
           # Create directories if they don't exist
           mkdir -p "$XDG_CONFIG_HOME"
           mkdir -p "$XDG_DATA_HOME"
+          mkdir -p "$HOME/.local/bin"
 
           {
             echo "XDG_RUNTIME_DIR=/run/user/$USER_ID"
@@ -460,33 +442,50 @@ jobs:
             echo "XDG_DATA_HOME=$HOME/.local/share"
           } >> "$GITHUB_ENV"
 
-      - name: Install Task
-        run: |
-          sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin v${{ env.TASK_VERSION }}
-          task --version
-
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgpgme-dev libbtrfs-dev
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Install Warpgate
         run: |
-          # Clone and build warpgate
-          git clone --depth 1 --branch ${{ env.WARPGATE_VERSION }} https://github.com/cowdogmoo/warpgate.git /tmp/warpgate
-          cd /tmp/warpgate
+          set -euo pipefail
 
-          # Build warpgate
-          task -y go:build
+          # Detect OS and architecture
+          OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+          ARCH="$(uname -m)"
 
-          # Install to user directory
-          mkdir -p "$HOME/.local/bin"
-          cp warpgate "$HOME/.local/bin/warpgate"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          # Map architecture names to Go conventions
+          case "$ARCH" in
+            x86_64)
+              ARCH="amd64v3"
+              ;;
+            aarch64|arm64)
+              ARCH="arm64"
+              ;;
+            armv7l)
+              ARCH="armv7"
+              ;;
+            armv6l)
+              ARCH="armv6"
+              ;;
+            *)
+              echo "Unsupported architecture: $ARCH"
+              exit 1
+              ;;
+          esac
+
+          # Download and install warpgate binary
+          VERSION="${{ env.WARPGATE_VERSION }}"
+          TARBALL="warpgate_${VERSION#v}_${OS}_${ARCH}.tar.gz"
+          URL="https://github.com/CowDogMoo/warpgate/releases/download/${VERSION}/${TARBALL}"
+
+          echo "Downloading warpgate ${VERSION} for ${OS}/${ARCH}..."
+          echo "URL: ${URL}"
+
+          curl -fsSL "$URL" -o /tmp/warpgate.tar.gz
+          tar -xzf /tmp/warpgate.tar.gz -C "$HOME/.local/bin" warpgate
+          chmod +x "$HOME/.local/bin/warpgate"
+          rm /tmp/warpgate.tar.gz
 
           # Verify installation
-          export PATH="$HOME/.local/bin:$PATH"
-          which warpgate
           warpgate version
 
       - name: Download digests
