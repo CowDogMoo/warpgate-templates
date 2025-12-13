@@ -54,6 +54,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
+          cache: false
 
       - name: Verify Go Installation and Add to PATH
         run: |
@@ -219,6 +220,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
+          cache: false
 
       - name: Verify Go Installation and Add to PATH
         run: |
@@ -429,6 +431,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
+          cache: false
 
       - name: Verify Go Installation and Add to PATH
         run: |
