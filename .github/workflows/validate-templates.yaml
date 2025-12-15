@@ -39,14 +39,13 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Detect OS and architecture
           OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
           ARCH="$(uname -m)"
 
           # Map architecture names to Go conventions
           case "$ARCH" in
             x86_64)
-              ARCH="amd64v3"
+              ARCH="amd64"
               ;;
             aarch64|arm64)
               ARCH="arm64"
@@ -63,21 +62,23 @@ jobs:
               ;;
           esac
 
-          # Download and install warpgate binary
           VERSION="${{ env.WARPGATE_VERSION }}"
-          TARBALL="warpgate_${VERSION#v}_${OS}_${ARCH}.tar.gz"
-          URL="https://github.com/CowDogMoo/warpgate/releases/download/${VERSION}/${TARBALL}"
-
           echo "Downloading warpgate ${VERSION} for ${OS}/${ARCH}..."
-          echo "URL: ${URL}"
 
-          curl -fsSL "$URL" -o /tmp/warpgate.tar.gz
-          sudo tar -xzf /tmp/warpgate.tar.gz -C /usr/local/bin warpgate
+          gh release download "${VERSION}" \
+            --repo CowDogMoo/warpgate \
+            --pattern "warpgate_*_${OS}_${ARCH}*.tar.gz" \
+            --dir /tmp
+
+          shopt -s nullglob
+          tarball=(/tmp/warpgate_*_"${OS}"_"${ARCH}"*.tar.gz)
+          sudo tar -xzf "${tarball[0]}" -C /usr/local/bin warpgate
           sudo chmod +x /usr/local/bin/warpgate
-          rm /tmp/warpgate.tar.gz
+          rm "${tarball[@]}"
 
-          # Verify installation
           warpgate version
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Find all templates
         id: find-templates
