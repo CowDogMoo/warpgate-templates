@@ -279,8 +279,7 @@ warpgate-templates/
 │   └── workflows/          # CI/CD for template validation
 ├── README.md               # This file
 ├── CONTRIBUTING.md         # Contribution guidelines
-├── LICENSE                 # Repository license
-└── .warpgate-version       # Warpgate compatibility info
+└── LICENSE                 # Repository license
 ```
 
 ## License
