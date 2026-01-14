@@ -66,14 +66,6 @@ provisioners:
       changes:
         - USER ttpforge
         - WORKDIR /home/ttpforge
-post_processors:
-    - type: docker-tag
-      repository: ttpforge
-      tags:
-        - latest
-    - type: manifest
-      output: manifest.json
-      strip_path: true
 targets:
     - type: container
       platforms:

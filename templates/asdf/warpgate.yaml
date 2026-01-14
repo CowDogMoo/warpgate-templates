@@ -69,14 +69,6 @@ provisioners:
       changes:
         - USER asdf
         - WORKDIR /workspace
-post_processors:
-    - type: docker-tag
-      repository: asdf
-      tags:
-        - latest
-    - type: manifest
-      output: manifest.json
-      strip_path: true
 targets:
     - type: container
       platforms:

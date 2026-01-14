@@ -67,14 +67,6 @@ provisioners:
       changes:
         - USER sliver
         - WORKDIR /home/sliver
-post_processors:
-    - type: docker-tag
-      repository: sliver
-      tags:
-        - latest
-    - type: manifest
-      output: manifest.json
-      strip_path: true
 targets:
     - type: container
       platforms:

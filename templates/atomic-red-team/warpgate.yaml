@@ -65,14 +65,6 @@ provisioners:
       changes:
         - USER root
         - WORKDIR /root/AtomicRedTeam
-post_processors:
-    - type: docker-tag
-      repository: atomic-red-team
-      tags:
-        - latest
-    - type: manifest
-      output: manifest.json
-      strip_path: true
 targets:
     - type: container
       platforms:
