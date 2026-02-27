@@ -58,7 +58,8 @@ export PROVISION_REPO_PATH="${HOME}/ansible-collection-arsenal"
 warpgate build ttpforge --only 'docker.*'
 ```
 
-After the build, multi-arch TTPForge Docker images will be available locally as `ttpforge:latest`.
+After the build, multi-arch TTPForge Docker images will be available locally
+as `ttpforge:latest`.
 
 ---
 
