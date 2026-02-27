@@ -1,0 +1,77 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:recommended',
+    ':disableRateLimiting',
+    ':dependencyDashboard',
+    ':semanticCommits',
+    ':enablePreCommit',
+    ':automergeDigest',
+    ':automergeBranch',
+    'helpers:pinGitHubActionDigests',
+  ],
+  dependencyDashboardLabels: [
+    'renovate-dashboard',
+  ],
+  dependencyDashboardTitle: 'Renovate Dashboard',
+  suppressNotifications: [
+    'prIgnoreNotification',
+  ],
+  rebaseWhen: 'conflicted',
+  commitBodyTable: true,
+  labels: [
+    'renovate',
+  ],
+  platformAutomerge: true,
+  'pre-commit': {
+    enabled: true,
+  },
+  'github-actions': {
+    enabled: true,
+  },
+  packageRules: [
+    {
+      description: 'Auto merge GitHub Actions updates',
+      matchManagers: [
+        'github-actions',
+      ],
+      matchDatasources: [
+        'github-tags',
+      ],
+      matchUpdateTypes: [
+        'major',
+        'minor',
+        'patch',
+      ],
+      automerge: true,
+      automergeType: 'branch',
+    },
+    {
+      description: 'Auto merge warpgate patch and minor updates',
+      matchPackageNames: [
+        'CowDogMoo/warpgate',
+      ],
+      matchUpdateTypes: [
+        'patch',
+        'minor',
+      ],
+      automerge: true,
+      automergeType: 'pr',
+    },
+  ],
+  customManagers: [
+    {
+      customType: 'regex',
+      description: 'Update WARPGATE_VERSION environment variable in workflows',
+      managerFilePatterns: [
+        '/^\\.github/workflows/[^/]+\\.ya?ml$/',
+      ],
+      matchStrings: [
+        'WARPGATE_VERSION:\\s*["\']?(?<currentValue>v?[0-9.]+)["\']?',
+      ],
+      depNameTemplate: 'CowDogMoo/warpgate',
+      datasourceTemplate: 'github-releases',
+      versioningTemplate: 'semver',
+    },
+  ],
+}
