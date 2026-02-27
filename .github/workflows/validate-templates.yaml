@@ -21,7 +21,7 @@ on:
   workflow_dispatch:
 
 env:
-  WARPGATE_VERSION: "v3.0.0"
+  WARPGATE_VERSION: "v4.1.1"
   PYTHON_VERSION: "3.11"
   TASK_VERSION: "3.38.0"
   TASK_X_REMOTE_TASKFILES: 1
