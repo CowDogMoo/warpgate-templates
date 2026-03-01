@@ -19,7 +19,7 @@ on:
 
 env:
   GO_VERSION: "1.25.4"
-  PYTHON_VERSION: "3.12"
+  PYTHON_VERSION: "3.13.7"
 
 jobs:
   pre-commit:
