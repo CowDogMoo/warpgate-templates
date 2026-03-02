@@ -1,4 +1,4 @@
-FROM python:3.14-alpine
+FROM python:3.13-alpine
 
 # Install dependencies at build time for faster startup
 RUN apk add --no-cache \
@@ -9,7 +9,7 @@ RUN apk add --no-cache \
     inotify-tools && \
     pip install --no-cache-dir \
     pyyaml==6.0.1 \
-    psycopg2==2.9.9 \
+    psycopg2==2.9.10 \
     pyinotify==0.9.6 && \
     apk del gcc musl-dev postgresql-dev
 
