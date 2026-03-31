@@ -5,7 +5,6 @@ multi-architecture containers.**
 
 [![License](https://img.shields.io/github/license/CowDogMoo/warpgate-templates?label=License&style=flat&color=blue&logo=github)](https://github.com/CowDogMoo/warpgate-templates/blob/main/LICENSE)
 [![Release](https://img.shields.io/github/v/release/CowDogMoo/warpgate-templates?label=Release&logo=github)](https://github.com/CowDogMoo/warpgate-templates/releases)
-
 [![Pre-Commit](https://github.com/CowDogMoo/warpgate-templates/actions/workflows/pre-commit.yaml/badge.svg)](https://github.com/CowDogMoo/warpgate-templates/actions/workflows/pre-commit.yaml)
 [![Validate Templates](https://github.com/CowDogMoo/warpgate-templates/actions/workflows/validate-templates.yaml/badge.svg)](https://github.com/CowDogMoo/warpgate-templates/actions/workflows/validate-templates.yaml)
 [![Build and Push](https://github.com/CowDogMoo/warpgate-templates/actions/workflows/build-and-push-templates.yaml/badge.svg)](https://github.com/CowDogMoo/warpgate-templates/actions/workflows/build-and-push-templates.yaml)
@@ -54,37 +53,37 @@ warpgate build printer-monitor --arch amd64 --push
 
 Advanced templates using Ansible/shell provisioners:
 
-| Template | Description | Base Image | Platforms |
-| -------- | ----------- | ---------- | --------- |
-| [attack-box](./templates/attack-box) | Full-featured penetration testing toolkit | Kali Linux | Container, AMI |
-| [sliver](./templates/sliver) | Sliver C2 server and client | Ubuntu 25.04 | Container, AMI |
-| [atomic-red-team](./templates/atomic-red-team) | Atomic Red Team testing framework | Ubuntu 22.04 | Container, AMI |
-| [ttpforge](./templates/ttpforge) | TTP Forge testing framework | Ubuntu 25.04 | Container, AMI |
+| Template                                       | Description                               | Base Image   | Platforms      |
+| ---------------------------------------------- | ----------------------------------------- | ------------ | -------------- |
+| [attack-box](./templates/attack-box)           | Full-featured penetration testing toolkit | Kali Linux   | Container, AMI |
+| [sliver](./templates/sliver)                   | Sliver C2 server and client               | Ubuntu 25.04 | Container, AMI |
+| [atomic-red-team](./templates/atomic-red-team) | Atomic Red Team testing framework         | Ubuntu 22.04 | Container, AMI |
+| [ttpforge](./templates/ttpforge)               | TTP Forge testing framework               | Ubuntu 25.04 | Container, AMI |
 
 ### Dockerfile-Based Templates
 
 Simple templates using existing Dockerfiles:
 
-| Template | Description | Type | Platforms |
-| -------- | ----------- | ---- | --------- |
-| [printer-monitor](./templates/printer-monitor) | Brother printer health monitoring | Utility | Container |
-| [guacamole-provisioner](./templates/guacamole-provisioner) | Apache Guacamole connection provisioner | Utility | Container |
-| [atomic-red-dockerfile](./templates/atomic-red-dockerfile) | Atomic Red Team (Dockerfile variant) | Security | Container |
+| Template                                                   | Description                             | Type     | Platforms |
+| ---------------------------------------------------------- | --------------------------------------- | -------- | --------- |
+| [printer-monitor](./templates/printer-monitor)             | Brother printer health monitoring       | Utility  | Container |
+| [guacamole-provisioner](./templates/guacamole-provisioner) | Apache Guacamole connection provisioner | Utility  | Container |
+| [atomic-red-dockerfile](./templates/atomic-red-dockerfile) | Atomic Red Team (Dockerfile variant)    | Security | Container |
 
 ## Features
 
 ### Template Capabilities
 
-| Feature | Description |
-| ------- | ----------- |
-| **Multi-Architecture** | Build for amd64 and arm64 simultaneously |
-| **Dual Output** | Create both container images and AWS AMIs |
-| **Provisioner Support** | Ansible, shell, and custom provisioners |
-| **Variable Substitution** | Use environment variables and CLI flags |
-| **Registry Integration** | Push directly to container registries |
-| **Modular Design** | Reusable, composable configurations |
-| **CI/CD Ready** | Automated validation and builds |
-| **Version Control** | Semantic versioning with compatibility checks |
+| Feature                   | Description                                   |
+| ------------------------- | --------------------------------------------- |
+| **Multi-Architecture**    | Build for amd64 and arm64 simultaneously      |
+| **Dual Output**           | Create both container images and AWS AMIs     |
+| **Provisioner Support**   | Ansible, shell, and custom provisioners       |
+| **Variable Substitution** | Use environment variables and CLI flags       |
+| **Registry Integration**  | Push directly to container registries         |
+| **Modular Design**        | Reusable, composable configurations           |
+| **CI/CD Ready**           | Automated validation and builds               |
+| **Version Control**       | Semantic versioning with compatibility checks |
 
 ## Usage Guide
 
@@ -314,8 +313,7 @@ template's README.md.
 
 Need help or want to contribute?
 
-- **Issues**: [Report bugs or request features](
-  https://github.com/cowdogmoo/warpgate-templates/issues)
+- **Issues**: [Report bugs or request features](https://github.com/cowdogmoo/warpgate-templates/issues)
 - **Discussions**: [Ask questions and share ideas](https://github.com/cowdogmoo/warpgate-templates/discussions)
 - **Main Project**: [Warp Gate Repository](https://github.com/cowdogmoo/warpgate)
 
