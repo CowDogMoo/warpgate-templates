@@ -49,22 +49,22 @@ warpgate build printer-monitor --arch amd64 --push
 
 Advanced templates using Ansible/shell provisioners:
 
-| Template                                       | Description                               | Base Image   | Platforms      |
-| ---------------------------------------------- | ----------------------------------------- | ------------ | -------------- |
-| [attack-box](./templates/attack-box)           | Full-featured penetration testing toolkit | Kali Linux   | Container, AMI |
-| [sliver](./templates/sliver)                   | Sliver C2 server and client               | Ubuntu 25.04 | Container, AMI |
-| [atomic-red-team](./templates/atomic-red-team) | Atomic Red Team testing framework         | Ubuntu 22.04 | Container, AMI |
-| [ttpforge](./templates/ttpforge)               | TTP Forge testing framework               | Ubuntu 25.04 | Container, AMI |
+| Template | Description | Base | Platforms |
+| --- | --- | --- | --- |
+| [attack-box](./templates/attack-box) | Pentest toolkit | Kali | Container, AMI |
+| [sliver](./templates/sliver) | Sliver C2 server | Ubuntu 25.04 | Container, AMI |
+| [atomic-red-team](./templates/atomic-red-team) | Atomic Red Team | Ubuntu 22.04 | Container, AMI |
+| [ttpforge](./templates/ttpforge) | TTP Forge | Ubuntu 25.04 | Container, AMI |
 
 ### Dockerfile-Based Templates
 
 Simple templates using existing Dockerfiles:
 
-| Template                                                   | Description                             | Type     | Platforms |
-| ---------------------------------------------------------- | --------------------------------------- | -------- | --------- |
-| [printer-monitor](./templates/printer-monitor)             | Brother printer health monitoring       | Utility  | Container |
-| [guacamole-provisioner](./templates/guacamole-provisioner) | Apache Guacamole connection provisioner | Utility  | Container |
-| [atomic-red-dockerfile](./templates/atomic-red-dockerfile) | Atomic Red Team (Dockerfile variant)    | Security | Container |
+| Template | Description | Type | Platforms |
+| --- | --- | --- | --- |
+| [printer-monitor](./templates/printer-monitor) | Printer monitoring | Utility | Container |
+| [guacamole-provisioner](./templates/guacamole-provisioner) | Guacamole provisioner | Utility | Container |
+| [atomic-red-dockerfile](./templates/atomic-red-dockerfile) | Atomic Red Team | Security | Container |
 
 ## Features
 
