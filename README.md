@@ -14,12 +14,8 @@ multi-architecture containers.**
 ## Overview
 
 Official template repository for
-[Warp Gate](https://github.com/cowdogmoo/warpgate) - a robust, automatable
-engine for building security labs, golden images, and multi-architecture
-containers.
-
-This repository provides production-ready templates that enable rapid
-deployment of:
+[Warp Gate](https://github.com/cowdogmoo/warpgate) - providing
+production-ready templates that enable rapid deployment of:
 
 - **Security testing environments** - Red team tooling, C2 infrastructure,
   attack platforms
@@ -304,8 +300,6 @@ template's README.md.
 
 ### Template Development
 
-- **[Contributing Guide](./CONTRIBUTING.md)** - How to create and submit
-  templates
 - **[Template Repositories](https://github.com/cowdogmoo/warpgate/blob/main/docs/template-repositories.md)**
   \- Repository management
 
@@ -329,8 +323,6 @@ This project leverages industry-standard tools:
 
 ## Related Projects
 
-- **[Warp Gate](https://github.com/cowdogmoo/warpgate)** - Core build engine
-  and CLI
 - **[ansible-collection-arsenal](https://github.com/l50/ansible-collection-arsenal)**
   \- Security tooling provisioning roles
 - **[ansible-collection-workstation](https://github.com/CowDogMoo/ansible-collection-workstation)**
@@ -338,4 +330,4 @@ This project leverages industry-standard tools:
 
 ---
 
-**Maintained by [CowDogMoo](https://github.com/CowDogMoo)** | **License: [MIT](./LICENSE)**
+**Maintained by [CowDogMoo](https://github.com/CowDogMoo)**
