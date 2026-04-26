@@ -416,7 +416,7 @@ jobs:
   merge-manifests:
     name: Create multi-arch manifest for ${{ matrix.name }}
     needs: [discover-templates, build-images]
-    if: github.event_name != 'pull_request'
+    if: "!cancelled() && github.event_name != 'pull_request'"
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.discover-templates.outputs.templates) }}
