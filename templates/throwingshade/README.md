@@ -118,7 +118,16 @@ initContainers:
   - name: install-ts
     image: ghcr.io/cowdogmoo/throwingshade:<commit-sha>
     command: ["cp", "/ts", "/dest/ts"]
+    securityContext:
+      runAsUser: <volume-owner-uid>
+      runAsGroup: <volume-owner-gid>
     volumeMounts:
       - name: shared
         mountPath: /dest
 ```
+
+The image defaults to the non-root user `65534`, so the copy into a shared
+volume only works when the init container runs as a user that can write that
+volume. Set `runAsUser` and `runAsGroup` to the uid and gid that own the
+volume, normally the same user as the pod that runs `ts`. Use root (`0`) only
+if the volume requires it.
