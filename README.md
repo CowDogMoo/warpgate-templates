@@ -63,6 +63,7 @@ Simple templates using existing Dockerfiles:
 | Template | Description | Type | Platforms |
 | --- | --- | --- | --- |
 | [printer-monitor](./templates/printer-monitor) | Printer monitoring | Utility | Container |
+| [throwingshade](./templates/throwingshade) | Pinned throwingshade CLI | Utility | Container |
 | [guacamole-provisioner](./templates/guacamole-provisioner) | Guacamole provisioner | Utility | Container |
 | [atomic-red-dockerfile](./templates/atomic-red-dockerfile) | Atomic Red Team | Security | Container |
 

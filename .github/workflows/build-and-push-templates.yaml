@@ -136,8 +136,10 @@ jobs:
 
           warpgate templates add "$GITHUB_WORKSPACE"
 
-          # Generate GHA matrix from local templates
-          MATRIX=$(warpgate templates list --source local --format gha-matrix --quiet)
+          # Generate GHA matrix from local templates. throwingshade is built by
+          # hand: its source is private and its images are tagged by commit SHA.
+          MATRIX=$(warpgate templates list --source local --format gha-matrix --quiet |
+            jq '.template |= map(select(.name != "throwingshade"))')
 
           # Convert repository owner to lowercase for Docker compatibility
           REPO_OWNER_LOWER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')

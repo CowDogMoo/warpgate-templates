@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/cowdogmoo/warpgate/main/schema/warpgate-template.json
+metadata:
+  name: throwingshade
+  version: 1.0.0
+  description: throwingshade CLI (ts) pinned to a single commit
+  author: Jayson Grace <jayson.e.grace@gmail.com>
+  license: MIT
+  tags:
+    - shades
+    - cli
+    - utility
+  requires:
+    warpgate: '>=1.0.0'
+
+name: throwingshade
+# The image tag is the throwingshade commit SHA; there is no floating tag.
+version: ${THROWINGSHADE_REF}
+
+dockerfile:
+  path: Dockerfile
+  context: .
+  args:
+    THROWINGSHADE_REF: ${THROWINGSHADE_REF}
+    THROWINGSHADE_VERSION: ${THROWINGSHADE_VERSION}
+
+targets:
+  - type: container
+    platforms:
+      - linux/arm64
+    registry: ghcr.io/cowdogmoo
+    push: false
