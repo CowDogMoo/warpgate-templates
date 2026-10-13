@@ -51,7 +51,7 @@ jobs:
       - name: Install shell formatting tools
         run: |
           # Install shfmt for shell script formatting
-          go install mvdan.cc/sh/v3/cmd/shfmt@latest
+          go install mvdan.cc/sh/v3/cmd/shfmt@v3.13.1
 
           # Add Go bin directory to PATH
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
