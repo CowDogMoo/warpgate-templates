@@ -25,7 +25,7 @@ The image is tagged with the full 40-character throwingshade commit SHA it
 was built from, for example:
 
 ```text
-ghcr.io/cowdogmoo/throwingshade:89092c65402b1112f8156a91a582deae6f6c0f41
+ghcr.io/cowdogmoo/throwingshade:36f3914aeb592f38a9a466c9e23a13ac8bb9c1ab
 ```
 
 There is no `latest` or other floating tag. To update the binary, build a new
@@ -64,7 +64,7 @@ Build and push one commit:
 cd templates/throwingshade
 
 REF=<full 40-character throwingshade commit SHA>
-# Prints the git-describe style version, e.g. v2.1.1-13-g89092c6
+# Prints the git-describe style version, e.g. v2.1.1-14-g36f3914
 VERSION="$(./fetch-source.sh "$REF")"
 
 warpgate build warpgate.yaml \
