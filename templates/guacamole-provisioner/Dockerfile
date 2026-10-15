@@ -9,7 +9,7 @@ RUN apk add --no-cache \
     inotify-tools && \
     pip install --no-cache-dir \
     pyyaml==6.0.1 \
-    psycopg2==2.9.10 \
+    psycopg2==2.9.13 \
     pyinotify==0.9.6 && \
     apk del gcc musl-dev postgresql-dev
 
