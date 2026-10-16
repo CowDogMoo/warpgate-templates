@@ -101,20 +101,20 @@ Templates with complex provisioning (Ansible/shell):
 # Build with provisioners (requires PROVISION_REPO_PATH)
 warpgate build templates/attack-box/warpgate.yaml \
   --arch amd64 \
-  --registry ghcr.io/l50 \
+  --registry ghcr.io/cowdogmoo \
   --var PROVISION_REPO_PATH=$HOME/ansible-collection-arsenal
 
 # Build for ARM64
 warpgate build templates/ttpforge/warpgate.yaml \
   --arch arm64 \
-  --registry ghcr.io/l50 \
+  --registry ghcr.io/cowdogmoo \
   --var PROVISION_REPO_PATH=$HOME/ansible-collection-arsenal \
   --verbose
 
 # Build and push to registry
 warpgate build templates/sliver/warpgate.yaml \
   --arch amd64 \
-  --registry ghcr.io/l50 \
+  --registry ghcr.io/cowdogmoo \
   --var PROVISION_REPO_PATH=$HOME/ansible-collection-arsenal \
   --push
 ```
@@ -130,13 +130,13 @@ warpgate build templates/printer-monitor/warpgate.yaml --arch amd64
 # Build with custom registry
 warpgate build templates/guacamole-provisioner/warpgate.yaml \
   --arch amd64 \
-  --registry ghcr.io/l50 \
+  --registry ghcr.io/cowdogmoo \
   --verbose
 
 # Build for ARM64 and push
 warpgate build templates/printer-monitor/warpgate.yaml \
   --arch arm64 \
-  --registry ghcr.io/l50 \
+  --registry ghcr.io/cowdogmoo \
   --push
 
 # Build with custom build args
