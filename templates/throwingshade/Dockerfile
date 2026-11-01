@@ -2,7 +2,7 @@
 # downloads on the build host. The archive is the only input from the private
 # repository, so no credential ever reaches BuildKit, a layer, or the cache.
 ARG GO_IMAGE=golang:1.27.3-bookworm@sha256:d9b6a1beb9474adc2a1ce842573639b44b2a0dd49b6669f51d3821baf9ec37c9
-ARG RUNTIME_IMAGE=busybox:1.38.0@sha256:fd7dc98638c8e305f4dc34e979f1c0fdfdcaeb0fbf8fcff77ae834b6da3d7e6e
+ARG RUNTIME_IMAGE=busybox:1.38.0@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
 
 FROM --platform=$BUILDPLATFORM ${GO_IMAGE} AS build
 
