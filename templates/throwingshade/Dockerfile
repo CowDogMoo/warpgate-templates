@@ -1,7 +1,7 @@
 # Builds the throwingshade CLI (ts) from a source archive that fetch-source.sh
 # downloads on the build host. The archive is the only input from the private
 # repository, so no credential ever reaches BuildKit, a layer, or the cache.
-ARG GO_IMAGE=golang:1.27.4-bookworm@sha256:4fa7c968ba93f1635670522dbb01a2c78150443e1385746924566079f36570ea
+ARG GO_IMAGE=golang:1.27.4-bookworm@sha256:ce59b41415e2524ae99926fe1f37ce48ba8c194dcbd2a56a65436cdcefa2bd34
 ARG RUNTIME_IMAGE=busybox:1.38.0@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
 
 FROM --platform=$BUILDPLATFORM ${GO_IMAGE} AS build
